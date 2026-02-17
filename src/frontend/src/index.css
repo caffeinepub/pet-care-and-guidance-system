@@ -27,6 +27,14 @@
         --ring: 0.55 0.18 45;
         --success: 0.65 0.18 145;
         --warning: 0.70 0.20 75;
+        
+        /* Admin theme - warm amber/orange tones */
+        --admin-bg: 0.97 0.02 60;
+        --admin-foreground: 0.20 0.03 40;
+        --admin-card: 1 0 0;
+        --admin-muted: 0.55 0.03 60;
+        --admin-accent: 0.62 0.20 40;
+        --admin-border: 0.62 0.20 40;
     }
 
     .dark {
@@ -51,6 +59,14 @@
         --ring: 0.65 0.18 45;
         --success: 0.70 0.18 145;
         --warning: 0.75 0.20 75;
+        
+        /* Admin theme - dark mode */
+        --admin-bg: 0.16 0.03 40;
+        --admin-foreground: 0.92 0.02 60;
+        --admin-card: 0.20 0.03 40;
+        --admin-muted: 0.60 0.03 60;
+        --admin-accent: 0.68 0.20 40;
+        --admin-border: 0.68 0.20 40;
     }
 
     * {
@@ -94,5 +110,24 @@
 
     .card-hover {
         @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
+    }
+    
+    /* Admin-specific styles */
+    .admin-header {
+        @apply bg-admin-card border-b;
+        border-color: oklch(var(--admin-border) / 0.2);
+    }
+    
+    .admin-card {
+        @apply bg-admin-card transition-colors;
+        border-color: oklch(var(--admin-border) / 0.2);
+    }
+    
+    .admin-card:hover {
+        border-color: oklch(var(--admin-border) / 0.4);
+    }
+    
+    .admin-tabs [role="tablist"] {
+        border-color: oklch(var(--admin-border) / 0.2);
     }
 }

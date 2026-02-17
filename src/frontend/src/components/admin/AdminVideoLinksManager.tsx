@@ -5,7 +5,7 @@ import { Button } from '../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Label } from '../ui/label';
 import { Edit, Trash2, Video, ExternalLink } from 'lucide-react';
-import type { VideoCategory, VideoLink } from '../../backend';
+import type { VideoCategory, VideoLink, PetType } from '../../backend';
 
 interface AdminVideoLinksManagerProps {
   type: 'breed' | 'category' | 'health';
@@ -30,14 +30,16 @@ export default function AdminVideoLinksManager({
     if (type === 'breed') {
       videoCategory = { __kind__: 'breed', breed: selectedItem };
     } else if (type === 'category') {
-      videoCategory = { __kind__: 'petType', petType: selectedItem as any };
+      // For category type, use PetType enum values (cat/dog)
+      videoCategory = { __kind__: 'petType', petType: selectedItem as PetType };
     } else if (type === 'health') {
       videoCategory = { __kind__: 'healthTopic', healthTopic: selectedItem };
     }
   }
 
   const { data: videos = [], isLoading } = useGetVideosByCategory(
-    videoCategory || { __kind__: 'breed', breed: '' }
+    videoCategory || { __kind__: 'breed', breed: '' },
+    !!selectedItem && !!videoCategory
   );
 
   const getSelectOptions = () => {
@@ -47,10 +49,11 @@ export default function AdminVideoLinksManager({
         label: `${breed.name} (${breed.category})`,
       }));
     } else if (type === 'category') {
-      return categories.map((cat) => ({
-        value: cat.name,
-        label: cat.name,
-      }));
+      // Use PetType enum values
+      return [
+        { value: 'cat', label: 'Cats' },
+        { value: 'dog', label: 'Dogs' },
+      ];
     } else {
       // Health topics - provide common ones
       return [
@@ -71,12 +74,12 @@ export default function AdminVideoLinksManager({
     <div className="space-y-6">
       <div className="max-w-md">
         <Label>
-          Select {type === 'breed' ? 'Breed' : type === 'category' ? 'Category' : 'Health Topic'}
+          Select {type === 'breed' ? 'Breed' : type === 'category' ? 'Pet Type' : 'Health Topic'}
         </Label>
         <Select value={selectedItem} onValueChange={setSelectedItem}>
           <SelectTrigger>
             <SelectValue
-              placeholder={`Select a ${type === 'breed' ? 'breed' : type === 'category' ? 'category' : 'health topic'}`}
+              placeholder={`Select a ${type === 'breed' ? 'breed' : type === 'category' ? 'pet type' : 'health topic'}`}
             />
           </SelectTrigger>
           <SelectContent>
@@ -93,23 +96,23 @@ export default function AdminVideoLinksManager({
         <>
           {isLoading ? (
             <div className="text-center py-8">
-              <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
-              <p className="text-muted-foreground">Loading videos...</p>
+              <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-admin-accent border-t-transparent mx-auto"></div>
+              <p className="text-admin-muted">Loading videos...</p>
             </div>
           ) : displayedVideos.length === 0 ? (
-            <div className="text-center py-12 border-2 border-dashed rounded-lg">
-              <Video className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">
+            <div className="text-center py-12 border-2 border-dashed rounded-lg bg-admin-card">
+              <Video className="h-12 w-12 text-admin-muted mx-auto mb-4" />
+              <p className="text-admin-muted">
                 No videos found for {selectedItem}. Click "Add Video" to create one.
               </p>
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {displayedVideos.map((video) => (
-                <Card key={video.id.toString()}>
+                <Card key={video.id.toString()} className="admin-card">
                   <CardHeader>
                     <CardTitle className="text-lg flex items-start gap-2">
-                      <Video className="h-5 w-5 shrink-0 mt-0.5" />
+                      <Video className="h-5 w-5 shrink-0 mt-0.5 text-admin-accent" />
                       <span className="line-clamp-2">{video.title}</span>
                     </CardTitle>
                   </CardHeader>
@@ -121,7 +124,7 @@ export default function AdminVideoLinksManager({
                       href={video.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-primary hover:underline flex items-center gap-1"
+                      className="text-sm text-admin-accent hover:underline flex items-center gap-1"
                     >
                       View on YouTube
                       <ExternalLink className="h-3 w-3" />

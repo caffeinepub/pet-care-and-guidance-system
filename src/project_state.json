@@ -1,24 +1,34 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Pet guide web app with a live production deployment; user requests an admin panel to manage app content (breeds, pet categories, and related YouTube video links).",
-  "architectural_notes": [],
+  "summary": "Project now includes building a full working admin dashboard/panel for managing app data.",
+  "architectural_notes": [
+    "Add an admin dashboard route/page (e.g., /admin) protected by admin authentication/authorization for managing app content."
+  ],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-fix-the-admin-role-check-so-the-frontend-correctly-detects-when-the-signed-in-user-is-an-admin-and-ensure-the-admin-navigation-link-and-admin-routes-become-accessible-for-admins",
-      "title": "Fix the admin role check so the frontend correctly detects when the signed-in user is an admin, and ensure the Admin navigation link and /admin routes become accessible for admins.",
+      "id": "feature-make-the-admin-dashboard-discoverable-and-accessible-ensure-there-is-a-visible-navigation-entry-to-the-admin-dashboard-for-administrators-and-that-the-admin-dashboard-is-reachable-at-the-admin-route-with-sub-routes-admin-categories-admin-breeds-admin-videos",
+      "title": "Make the Admin Dashboard discoverable and accessible: ensure there is a visible navigation entry to the admin dashboard for administrators and that the admin dashboard is reachable at the /admin route (with sub-routes /admin/categories, /admin/breeds, /admin/videos).",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-ensure-the-admin-panel-provides-working-sections-to-add-edit-delete-pet-categories-breeds-and-related-youtube-video-links-gated-behind-admin-only-access",
-      "title": "Ensure the Admin panel provides working sections to add/edit/delete Pet Categories, Breeds, and related YouTube video links, gated behind admin-only access.",
+      "id": "feature-deliver-a-complete-admin-dashboard-experience-with-working-crud-for-pet-categories-breeds-and-admin-managed-video-links-including-image-upload-support-using-the-existing-admin-pages-and-hooks",
+      "title": "Deliver a complete Admin Dashboard experience with working CRUD for pet categories, breeds, and admin-managed video links, including image upload support, using the existing admin pages and hooks.",
       "reqIds": [
-        "REQ-2"
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-a-cohesive-distinct-visual-theme-for-the-admin-dashboard-pages-layout-typography-spacing-and-component-styling-that-is-consistent-across-admin-admin-categories-admin-breeds-and-admin-videos",
+      "title": "Apply a cohesive, distinct visual theme for the admin dashboard pages (layout, typography, spacing, and component styling) that is consistent across /admin, /admin/categories, /admin/breeds, and /admin/videos.",
+      "reqIds": [
+        "REQ-4"
       ],
       "version": 1
     }
@@ -26,12 +36,19 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Add an admin panel for managing content: add/edit/delete breeds, pet categories, and related YouTube video links.",
+      "summary": "Build a full working admin dashboard/panel (visible page/route) with admin login and CRUD management for breeds, categories, videos, and other pet data.",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Implement a reliable admin authorization flow so at least one administrator can successfully pass the frontend admin check (actor.isCallerAdmin) after deployment and can use the admin dashboard end-to-end.",
+      "reqIds": [
+        "REQ-2"
+      ],
       "status": "pending"
     }
   ],
-  "gameProjectType": "none",
   "projectName": "PetGuide Admin",
   "clarification_mode": "instant",
   "clarification_rounds": 0

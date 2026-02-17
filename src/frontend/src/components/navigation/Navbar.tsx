@@ -8,13 +8,16 @@ import { useState } from 'react';
 
 export default function Navbar() {
   const { identity, clear, login, loginStatus } = useInternetIdentity();
-  const { isAdmin } = useCallerRole();
+  const { isAdmin, isLoading: roleLoading, isFetched: roleFetched } = useCallerRole();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isAuthenticated = !!identity;
   const isLoggingIn = loginStatus === 'logging-in';
+
+  // Only show admin link when we've confirmed the user is an admin
+  const showAdminLink = isAuthenticated && roleFetched && isAdmin;
 
   const handleAuth = async () => {
     if (isAuthenticated) {
@@ -40,7 +43,7 @@ export default function Navbar() {
     { to: '/health', label: 'Health & Care' },
     { to: '/ai-assistant', label: 'AI Assistant' },
     ...(isAuthenticated ? [{ to: '/dashboard', label: 'Dashboard' }, { to: '/profile', label: 'Profile' }] : []),
-    ...(isAdmin ? [{ to: '/admin', label: 'Admin', icon: Shield }] : []),
+    ...(showAdminLink ? [{ to: '/admin', label: 'Admin', icon: Shield }] : []),
   ];
 
   return (

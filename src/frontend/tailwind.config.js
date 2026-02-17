@@ -56,6 +56,14 @@ export default {
                 warning: {
                     DEFAULT: 'oklch(var(--warning) / <alpha-value>)',
                     foreground: 'oklch(var(--primary-foreground))'
+                },
+                admin: {
+                    bg: 'oklch(var(--admin-bg))',
+                    foreground: 'oklch(var(--admin-foreground))',
+                    card: 'oklch(var(--admin-card))',
+                    muted: 'oklch(var(--admin-muted))',
+                    accent: 'oklch(var(--admin-accent))',
+                    border: 'oklch(var(--admin-border) / <alpha-value>)'
                 }
             },
             borderRadius: {

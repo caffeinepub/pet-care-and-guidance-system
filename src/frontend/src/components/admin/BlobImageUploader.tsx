@@ -5,6 +5,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Progress } from '../ui/progress';
 import { Upload, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface BlobImageUploaderProps {
   onImageSelected: (blob: ExternalBlob) => void;
@@ -21,11 +22,15 @@ export default function BlobImageUploader({
 }: BlobImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Update preview when currentImageUrl changes
   useEffect(() => {
-    setPreviewUrl(currentImageUrl || null);
+    if (currentImageUrl) {
+      setPreviewUrl(currentImageUrl);
+    } else {
+      setPreviewUrl(null);
+    }
   }, [currentImageUrl]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,13 +39,13 @@ export default function BlobImageUploader({
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      toast.error('Please select an image file');
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image size must be less than 5MB');
+      toast.error('Image size must be less than 5MB');
       return;
     }
 
@@ -65,7 +70,7 @@ export default function BlobImageUploader({
       onImageSelected(blob);
     } catch (error) {
       console.error('Failed to upload image:', error);
-      alert('Failed to upload image. Please try again.');
+      toast.error('Failed to upload image. Please try again.');
     } finally {
       setUploading(false);
     }

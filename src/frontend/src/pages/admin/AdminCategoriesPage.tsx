@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useGetAllPetCategories, useAddPetCategory, useUpdatePetCategory, useRemovePetCategory } from '../../hooks/useContentManagement';
+import AdminShell from '../../components/admin/AdminShell';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -7,7 +8,7 @@ import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
 import BlobImageUploader from '../../components/admin/BlobImageUploader';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, FolderTree } from 'lucide-react';
 import { toast } from 'sonner';
 import type { PetCategory } from '../../backend';
 import { ExternalBlob } from '../../backend';
@@ -91,22 +92,25 @@ export default function AdminCategoriesPage() {
 
   if (isLoading) {
     return (
-      <div className="container-custom section-spacing">
-        <p>Loading categories...</p>
-      </div>
+      <AdminShell title="Manage Pet Categories" description="Add, edit, or remove pet categories">
+        <div className="text-center py-12">
+          <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-admin-accent border-t-transparent mx-auto"></div>
+          <p className="text-admin-muted">Loading categories...</p>
+        </div>
+      </AdminShell>
     );
   }
 
   return (
-    <div className="container-custom section-spacing animate-fade-in">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-4xl font-bold mb-2">Manage Pet Categories</h1>
-          <p className="text-muted-foreground">Add, edit, or remove pet categories</p>
-        </div>
+    <AdminShell
+      title="Manage Pet Categories"
+      description="Add, edit, or remove pet categories"
+      breadcrumbs={[{ label: 'Categories' }]}
+    >
+      <div className="flex justify-end mb-6">
         <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
-            <Button className="gap-2">
+            <Button className="gap-2 bg-admin-accent hover:bg-admin-accent/90 text-white">
               <Plus className="h-4 w-4" />
               Add Category
             </Button>
@@ -133,16 +137,17 @@ export default function AdminCategoriesPage() {
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Brief description of this category"
-                  rows={3}
+                  placeholder="Brief description of this pet category"
+                  rows={4}
                   required
                 />
               </div>
 
               <BlobImageUploader
                 label="Category Image"
-                onImageSelected={(blob) => setFormData({ ...formData, image: blob })}
                 currentImageUrl={formData.image?.getDirectURL()}
+                onImageSelected={(blob) => setFormData({ ...formData, image: blob })}
+                onImageCleared={() => setFormData({ ...formData, image: null })}
               />
 
               <div className="flex gap-2 justify-end">
@@ -158,41 +163,50 @@ export default function AdminCategoriesPage() {
         </Dialog>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {categories.map((category) => (
-          <Card key={category.name}>
-            <CardHeader>
-              {category.image && (
-                <img
-                  src={category.image.getDirectURL()}
-                  alt={category.name}
-                  className="w-full h-40 object-cover rounded-md mb-4"
-                />
-              )}
-              <CardTitle>{category.name}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">{category.description}</p>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => handleEdit(category)} className="gap-2">
-                  <Edit className="h-4 w-4" />
-                  Edit
-                </Button>
-                <Button variant="destructive" size="sm" onClick={() => handleDelete(category.name)} className="gap-2">
-                  <Trash2 className="h-4 w-4" />
-                  Delete
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {categories.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No categories yet. Click "Add Category" to create one.</p>
+      {categories.length === 0 ? (
+        <div className="text-center py-12 border-2 border-dashed rounded-lg bg-admin-card">
+          <FolderTree className="h-12 w-12 text-admin-muted mx-auto mb-4" />
+          <p className="text-admin-muted">No categories yet. Click "Add Category" to create one.</p>
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {categories.map((category) => (
+            <Card key={category.name} className="admin-card">
+              <CardHeader>
+                {category.image && (
+                  <img
+                    src={category.image.getDirectURL()}
+                    alt={category.name}
+                    className="w-full h-48 object-cover rounded-lg mb-4"
+                  />
+                )}
+                <CardTitle className="flex items-center gap-2">
+                  <FolderTree className="h-5 w-5 text-admin-accent" />
+                  {category.name}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground line-clamp-3">{category.description}</p>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => handleEdit(category)} className="gap-2 flex-1">
+                    <Edit className="h-4 w-4" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleDelete(category.name)}
+                    className="gap-2 flex-1"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
-    </div>
+    </AdminShell>
   );
 }

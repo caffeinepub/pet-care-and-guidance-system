@@ -112,6 +112,7 @@ export interface backendInterface {
     addPetCategory(category: PetCategory): Promise<void>;
     addVaccination(petId: PetId, name: string, dueDate: Timestamp, reminderFrequency: VaccinationFrequency): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    getAllAdminVideoLinks(): Promise<Array<VideoLink>>;
     getAllBreeds(): Promise<Array<Breed>>;
     getAllFavoriteVideos(): Promise<Array<Favorite>>;
     getAllPetCategories(): Promise<Array<PetCategory>>;

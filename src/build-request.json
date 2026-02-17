@@ -1,58 +1,94 @@
 {
   "kind": "build_request",
-  "title": "Fix admin access and surface admin panel for content management",
+  "title": "Build a full working admin dashboard panel (routes, access control, and CRUD)",
   "projectName": "PetGuide Admin",
-  "priority": "high",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Fix the admin role check so the frontend correctly detects when the signed-in user is an admin, and ensure the Admin navigation link and /admin routes become accessible for admins.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "i am the admin but i can not see any admin plus points like adding a breed adding related video links (youtube) adding new pet categories etc in this web please add admin panel where i can do all these"
-        ]
-      },
-      "acceptanceCriteria": [
-        "When signed in as an admin principal, the navbar shows an “Admin” link that navigates to /admin.",
-        "When signed in as a non-admin principal, the “Admin” link is not shown and visiting /admin shows an access denied screen.",
-        "The frontend admin role hook calls an existing backend method that actually exists (e.g., the frontend must not call a non-existent method name).",
-        "The backend exposes a query method that returns whether the caller is an admin (currently backend/main.mo exposes `isAdmin()`), and the frontend uses that method consistently."
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "text": "Ensure the Admin panel provides working sections to add/edit/delete Pet Categories, Breeds, and related YouTube video links, gated behind admin-only access.",
+      "text": "Make the Admin Dashboard discoverable and accessible: ensure there is a visible navigation entry to the admin dashboard for administrators and that the admin dashboard is reachable at the /admin route (with sub-routes /admin/categories, /admin/breeds, /admin/videos).",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "please add admin panel where i can do all these"
+          "please build a full working admin dashboard panel"
         ]
       },
       "acceptanceCriteria": [
-        "Admin Dashboard (/admin) displays navigation cards for managing Pet Categories, Breeds, and Video Links.",
-        "Admins can open the Pet Categories admin page and create/update/delete categories (including optional image upload where supported by existing UI).",
-        "Admins can open the Breeds admin page and create/update/delete breeds (including optional image upload where supported by existing UI).",
-        "Admins can open the Video Links admin page and create/update/delete YouTube video links (using the existing admin video management flow)."
+        "When a signed-in admin visits the app, the top navigation displays an “Admin” link.",
+        "Clicking “Admin” navigates to /admin and renders the Admin Dashboard landing page without errors.",
+        "Non-admin users do not see the “Admin” navigation link.",
+        "Directly visiting /admin (and sub-routes) as a non-admin shows an “Access Denied” screen (not a blank page)."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Implement a reliable admin authorization flow so at least one administrator can successfully pass the frontend admin check (actor.isCallerAdmin) after deployment and can use the admin dashboard end-to-end.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "please build a full working admin dashboard panel"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The backend exposes a working isCallerAdmin method used by the frontend role check.",
+        "There is a secure, documented bootstrap mechanism so at least one principal can be an admin in a fresh deployment (without requiring code edits post-deploy).",
+        "Calls to admin-only backend methods (category/breed/video CRUD) succeed for admin callers and trap with an authorization error for non-admin callers."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Deliver a complete Admin Dashboard experience with working CRUD for pet categories, breeds, and admin-managed video links, including image upload support, using the existing admin pages and hooks.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "please build a full working admin dashboard panel"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admins can create, edit, and delete Pet Categories from /admin/categories and the list refreshes after each mutation.",
+        "Admins can create, edit, and delete Breeds from /admin/breeds (including selecting a category) and the list refreshes after each mutation.",
+        "Admins can create, edit, and delete Video Links from /admin/videos for: Breed videos, Category videos, and Health-topic videos, and changes are reflected immediately in the admin lists.",
+        "Image uploaders in admin forms successfully store and render uploaded images (preview and saved state) using the existing blob storage integration.",
+        "All admin pages provide clear success/error feedback (e.g., toast messages) for create/update/delete actions."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Apply a cohesive, distinct visual theme for the admin dashboard pages (layout, typography, spacing, and component styling) that is consistent across /admin, /admin/categories, /admin/breeds, and /admin/videos.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "please build a full working admin dashboard panel"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin pages share a consistent visual style (headers, cards, forms, tables/lists, and spacing).",
+        "The theme avoids a default-looking appearance and does not rely on blue/purple as the primary palette.",
+        "The admin section looks clearly separated from the user-facing pages while remaining part of the same product design system."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo; do not introduce additional backend services.",
-    "Do not edit files under frontend/src/components/ui (read-only UI primitives).",
-    "Do not edit frontend immutable hook files listed in system constraints; implement changes in editable hooks/components/pages instead.",
-    "All user-facing text must be in English."
+    "Backend must remain a single Motoko actor in backend/main.mo; create backend/migration.mo only if a state upgrade is required.",
+    "Do not edit frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or anything under frontend/src/components/ui; compose existing UI components instead.",
+    "Use Internet Identity for authentication; no third-party auth providers."
   ],
   "nonGoals": [
-    "Adding third-party authentication providers (only Internet Identity is supported).",
-    "Adding external databases or non-IC storage backends.",
-    "Implementing real-time collaboration or chat in the admin panel."
+    "Implementing non-Internet-Identity authentication (email/password, OAuth, Auth0, etc.).",
+    "Adding real-time collaboration, WebSockets, chat, push notifications, or email/SMS workflows.",
+    "Introducing external databases or additional backend services beyond the single canister actor."
   ],
   "imageRequirements": {
     "required": [],

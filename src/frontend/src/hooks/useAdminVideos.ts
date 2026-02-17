@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import type { VideoLink, VideoCategory } from '../backend';
 
-export function useGetVideosByCategory(category: VideoCategory) {
+export function useGetVideosByCategory(category: VideoCategory, enabled: boolean = true) {
   const { actor, isFetching: actorFetching } = useActor();
 
   return useQuery<VideoLink[]>({
@@ -11,7 +11,7 @@ export function useGetVideosByCategory(category: VideoCategory) {
       if (!actor) throw new Error('Actor not available');
       return actor.getVideosByCategory(category);
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && enabled,
   });
 }
 

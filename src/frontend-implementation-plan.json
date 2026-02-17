@@ -1,69 +1,121 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "PetGuide Admin: Fix admin detection and make admin content management fully usable",
+  "title": "PetGuide Admin — Frontend Admin Dashboard (routing, guards, CRUD UI, theme)",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Fix frontend admin role detection to call an existing backend admin-check method and ensure admin navigation + /admin access gating works correctly.",
+      "summary": "Ensure /admin and sub-routes are reachable with a visible admin-only navigation entry and a non-admin Access Denied screen for direct visits.",
       "acceptanceCriteria": [
-        "When signed in as an admin principal, the navbar shows an “Admin” link that navigates to /admin.",
-        "When signed in as a non-admin principal, the “Admin” link is not shown and visiting /admin shows an access denied screen.",
-        "The frontend admin role hook calls an existing backend method that actually exists (e.g., the frontend must not call a non-existent method name).",
-        "The backend exposes a query method that returns whether the caller is an admin (currently backend/main.mo exposes `isAdmin()`), and the frontend uses that method consistently."
+        "When a signed-in admin visits the app, the top navigation displays an “Admin” link.",
+        "Clicking “Admin” navigates to /admin and renders the Admin Dashboard landing page without errors.",
+        "Non-admin users do not see the “Admin” navigation link.",
+        "Directly visiting /admin (and sub-routes) as a non-admin shows an “Access Denied” screen (not a blank page)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/backend.d.ts",
-          "operation": "modify",
-          "description": "Align the frontend backend interface typing with the admin-check capability expected by the app: ensure the interface includes the backend admin query method name used by the frontend (e.g., add `isAdmin(): Promise<boolean>` if the backend exposes it, while preserving any existing method signatures for compatibility). This supports the authorization component’s role-based access control expectations. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useCallerRole.ts",
-          "operation": "modify",
-          "description": "Update the admin role hook to (1) avoid running the admin-check query when the user is not authenticated, and (2) call the correct existing backend admin-check method consistently (prefer the backend’s `isAdmin()` if present; otherwise fall back safely to the currently available method), returning stable `isAdmin/isLoading/isFetched` state for UI guards and navbar. This uses the authorization component’s role-based access control flow. Verify the component's usage instructions before implementing."
-        },
-        {
           "path": "frontend/src/components/navigation/Navbar.tsx",
           "operation": "modify",
-          "description": "Ensure the Admin navigation link visibility is driven by the corrected admin role hook state (admin-only), without showing Admin for non-admins; keep all user-facing text in English. Verify the component's usage instructions before implementing."
+          "description": "Tighten admin-link visibility logic to align with the role-check lifecycle (use useCallerRole loading/fetched flags) so the “Admin” nav entry is only rendered for confirmed admins and never for non-admins."
+        },
+        {
+          "path": "frontend/src/components/auth/RequireAdmin.tsx",
+          "operation": "modify",
+          "description": "Ensure the admin-guard consistently renders a clear Access Denied screen for authenticated non-admins attempting to access /admin routes, with no blank/unstyled state and with stable loading behavior during role checks."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Verify /admin, /admin/categories, /admin/breeds, /admin/videos routes remain wired through RequireAdmin and render the correct pages without errors."
         }
       ]
     },
     {
-      "id": "REQ-2",
-      "summary": "Ensure the Admin panel has fully working admin-only management sections for Pet Categories, Breeds, and YouTube Video Links (add/edit/delete), including image upload where supported.",
+      "id": "REQ-3",
+      "summary": "Complete end-to-end admin CRUD UX for categories, breeds, and video links with image upload previews/saved state and clear success/error feedback, using existing pages and hooks.",
       "acceptanceCriteria": [
-        "Admin Dashboard (/admin) displays navigation cards for managing Pet Categories, Breeds, and Video Links.",
-        "Admins can open the Pet Categories admin page and create/update/delete categories (including optional image upload where supported by existing UI).",
-        "Admins can open the Breeds admin page and create/update/delete breeds (including optional image upload where supported by existing UI).",
-        "Admins can open the Video Links admin page and create/update/delete YouTube video links (using the existing admin video management flow)."
+        "Admins can create, edit, and delete Pet Categories from /admin/categories and the list refreshes after each mutation.",
+        "Admins can create, edit, and delete Breeds from /admin/breeds (including selecting a category) and the list refreshes after each mutation.",
+        "Admins can create, edit, and delete Video Links from /admin/videos for: Breed videos, Category videos, and Health-topic videos, and changes are reflected immediately in the admin lists.",
+        "Image uploaders in admin forms successfully store and render uploaded images (preview and saved state) using the existing blob storage integration.",
+        "All admin pages provide clear success/error feedback (e.g., toast messages) for create/update/delete actions."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/admin/AdminLandingPage.tsx",
-          "operation": "modify",
-          "description": "Confirm Admin Dashboard navigation cards and copy remain accurate for managing Pet Categories, Breeds, and Video Links, and that links route to the existing admin management pages. Verify the component's usage instructions before implementing."
-        },
-        {
           "path": "frontend/src/pages/admin/AdminCategoriesPage.tsx",
           "operation": "modify",
-          "description": "Validate and refine the Pet Categories admin CRUD flow to ensure create/update/delete work end-to-end and image upload continues to use the existing BlobImageUploader (blob-storage ExternalBlob) correctly. Verify the component's usage instructions before implementing."
+          "description": "Ensure the category form supports full image lifecycle (select + clear) by wiring BlobImageUploader onImageCleared to reset the form image state; keep toast-based success/error feedback and confirm list refresh via existing react-query invalidations."
         },
         {
           "path": "frontend/src/pages/admin/AdminBreedsPage.tsx",
           "operation": "modify",
-          "description": "Validate and refine the Breeds admin CRUD flow to ensure create/update/delete work end-to-end and image upload continues to use the existing BlobImageUploader (blob-storage ExternalBlob) correctly. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/admin/AdminVideoLinksManager.tsx",
-          "operation": "create",
-          "description": "Create an admin-only video management UI component that lists videos by selected category (breed / pet type / health topic) using the existing admin video hooks (useGetVideosByCategory, add/update/remove), and provides edit + delete actions that drive the existing dialog form in the page. Verify the component's usage instructions before implementing."
+          "description": "Ensure the breed form supports full image lifecycle (select + clear) by wiring BlobImageUploader onImageCleared to reset the form image state; keep toast-based success/error feedback and confirm list refresh via existing react-query invalidations."
         },
         {
           "path": "frontend/src/pages/admin/AdminVideosPage.tsx",
           "operation": "modify",
-          "description": "Replace the placeholder VideoList with a working implementation by wiring the new AdminVideoLinksManager: (1) enable selecting a specific breed/category/health topic to load videos via useGetVideosByCategory, (2) render returned VideoLink items with edit/delete controls, and (3) keep add/edit/delete using the existing admin video management hooks. Verify the component's usage instructions before implementing."
+          "description": "Fix and finalize the video CRUD flow so each tab correctly maps to backend VideoCategory variants: Breed videos (breed), Category videos (petType enum), Health-topic videos (healthTopic). Ensure add/edit forms and lists use the same category mapping and that mutations trigger immediate list updates with clear toast feedback."
+        },
+        {
+          "path": "frontend/src/components/admin/AdminVideoLinksManager.tsx",
+          "operation": "modify",
+          "description": "Align category selection behavior with backend VideoCategory semantics: for the “category” manager, select PetType values (cat/dog) rather than PetCategory names; ensure the query only runs with a valid selection to avoid fetching with invalid/empty categories."
+        },
+        {
+          "path": "frontend/src/components/admin/BlobImageUploader.tsx",
+          "operation": "modify",
+          "description": "Use the blob-storage ExternalBlob flow for image selection with preview and progress, and replace alert-based errors with consistent toast-friendly messaging (while preserving validation). Use ExternalBlob.getDirectURL for rendering saved images. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useAdminVideos.ts",
+          "operation": "modify",
+          "description": "Confirm cache invalidation reliably refreshes all relevant admin video lists after create/update/delete (including per-category queries) and that authorization failures surface as user-friendly errors for toast display."
+        },
+        {
+          "path": "frontend/src/hooks/useContentManagement.ts",
+          "operation": "modify",
+          "description": "Confirm cache invalidation reliably refreshes categories/breeds lists after create/update/delete and that authorization failures surface as user-friendly errors for toast display."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Apply a cohesive, distinct admin visual theme across all admin pages without relying on blue/purple as the primary palette.",
+      "acceptanceCriteria": [
+        "Admin pages share a consistent visual style (headers, cards, forms, tables/lists, and spacing).",
+        "The theme avoids a default-looking appearance and does not rely on blue/purple as the primary palette.",
+        "The admin section looks clearly separated from the user-facing pages while remaining part of the same product design system."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/admin/AdminShell.tsx",
+          "operation": "create",
+          "description": "Create a shared admin layout wrapper (e.g., header section, consistent spacing, section title area, optional breadcrumbs/actions) that visually distinguishes the admin area while reusing existing shadcn/ui components. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/admin/AdminLandingPage.tsx",
+          "operation": "modify",
+          "description": "Wrap the page in AdminShell and update the visual styling to match the admin theme; replace blue/green/purple accent usage with a cohesive non-blue/purple admin palette and consistent card styling."
+        },
+        {
+          "path": "frontend/src/pages/admin/AdminCategoriesPage.tsx",
+          "operation": "modify",
+          "description": "Wrap the page in AdminShell and standardize admin styling (page header, cards, dialogs/forms spacing) so it matches the shared admin theme."
+        },
+        {
+          "path": "frontend/src/pages/admin/AdminBreedsPage.tsx",
+          "operation": "modify",
+          "description": "Wrap the page in AdminShell and standardize admin styling (page header, cards, dialogs/forms spacing) so it matches the shared admin theme."
+        },
+        {
+          "path": "frontend/src/pages/admin/AdminVideosPage.tsx",
+          "operation": "modify",
+          "description": "Wrap the page in AdminShell and standardize admin styling (page header, tabs area, dialogs/forms spacing) so it matches the shared admin theme."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add admin-specific utility classes (scoped to AdminShell) for consistent surfaces, headers, and section spacing, using a distinct non-blue/purple accent treatment that remains compatible with the existing design system."
         }
       ]
     }

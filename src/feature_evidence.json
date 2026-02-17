@@ -2,10 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-admin-role-check-so-the-frontend-correctly-detects-when-the-signed-in-user-is-an-admin-and-ensure-the-admin-navigation-link-and-admin-routes-become-accessible-for-admins",
-      "featureTitle": "Fix the admin role check so the frontend correctly detects when the signed-in user is an admin, and ensure the Admin navigation link and /admin routes become accessible for admins.",
+      "featureId": "feature-make-the-admin-dashboard-discoverable-and-accessible-ensure-there-is-a-visible-navigation-entry-to-the-admin-dashboard-for-administrators-and-that-the-admin-dashboard-is-reachable-at-the-admin-route-with-sub-routes-admin-categories-admin-breeds-admin-videos",
+      "featureTitle": "Make the Admin Dashboard discoverable and accessible: ensure there is a visible navigation entry to the admin dashboard for administrators and that the admin dashboard is reachable at the /admin route (with sub-routes /admin/categories, /admin/breeds, /admin/videos).",
       "files": [
-        "frontend/src/hooks/useCallerRole.ts"
+        "frontend/src/components/auth/RequireAdmin.tsx",
+        "frontend/src/components/navigation/Navbar.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -22,10 +23,14 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-the-admin-panel-provides-working-sections-to-add-edit-delete-pet-categories-breeds-and-related-youtube-video-links-gated-behind-admin-only-access",
-      "featureTitle": "Ensure the Admin panel provides working sections to add/edit/delete Pet Categories, Breeds, and related YouTube video links, gated behind admin-only access.",
+      "featureId": "feature-deliver-a-complete-admin-dashboard-experience-with-working-crud-for-pet-categories-breeds-and-admin-managed-video-links-including-image-upload-support-using-the-existing-admin-pages-and-hooks",
+      "featureTitle": "Deliver a complete Admin Dashboard experience with working CRUD for pet categories, breeds, and admin-managed video links, including image upload support, using the existing admin pages and hooks.",
       "files": [
         "frontend/src/components/admin/AdminVideoLinksManager.tsx",
+        "frontend/src/components/admin/BlobImageUploader.tsx",
+        "frontend/src/hooks/useAdminVideos.ts",
+        "frontend/src/pages/admin/AdminBreedsPage.tsx",
+        "frontend/src/pages/admin/AdminCategoriesPage.tsx",
         "frontend/src/pages/admin/AdminVideosPage.tsx"
       ],
       "components": [
@@ -38,7 +43,32 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-2"
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-apply-a-cohesive-distinct-visual-theme-for-the-admin-dashboard-pages-layout-typography-spacing-and-component-styling-that-is-consistent-across-admin-admin-categories-admin-breeds-and-admin-videos",
+      "featureTitle": "Apply a cohesive, distinct visual theme for the admin dashboard pages (layout, typography, spacing, and component styling) that is consistent across /admin, /admin/categories, /admin/breeds, and /admin/videos.",
+      "files": [
+        "frontend/src/components/admin/AdminShell.tsx",
+        "frontend/src/index.css",
+        "frontend/src/pages/admin/AdminBreedsPage.tsx",
+        "frontend/src/pages/admin/AdminCategoriesPage.tsx",
+        "frontend/src/pages/admin/AdminLandingPage.tsx",
+        "frontend/src/pages/admin/AdminVideosPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
       ],
       "confidence": "high"
     }

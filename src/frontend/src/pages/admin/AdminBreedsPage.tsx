@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useGetAllBreeds, useGetAllPetCategories, useAddBreed, useUpdateBreed, useRemoveBreed } from '../../hooks/useContentManagement';
+import AdminShell from '../../components/admin/AdminShell';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -8,14 +9,14 @@ import { Textarea } from '../../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
 import BlobImageUploader from '../../components/admin/BlobImageUploader';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Dog } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Breed } from '../../backend';
 import { ExternalBlob } from '../../backend';
 
 export default function AdminBreedsPage() {
-  const { data: breeds = [], isLoading } = useGetAllBreeds();
-  const { data: categories = [] } = useGetAllPetCategories();
+  const { data: breeds = [], isLoading: breedsLoading } = useGetAllBreeds();
+  const { data: categories = [], isLoading: categoriesLoading } = useGetAllPetCategories();
   const addBreed = useAddBreed();
   const updateBreed = useUpdateBreed();
   const removeBreed = useRemoveBreed();
@@ -56,7 +57,7 @@ export default function AdminBreedsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name.trim() || !formData.category.trim() || !formData.description.trim()) {
+    if (!formData.name.trim() || !formData.category || !formData.description.trim()) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -95,24 +96,27 @@ export default function AdminBreedsPage() {
     }
   };
 
-  if (isLoading) {
+  if (breedsLoading || categoriesLoading) {
     return (
-      <div className="container-custom section-spacing">
-        <p>Loading breeds...</p>
-      </div>
+      <AdminShell title="Manage Breeds" description="Add, edit, or remove breeds">
+        <div className="text-center py-12">
+          <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-admin-accent border-t-transparent mx-auto"></div>
+          <p className="text-admin-muted">Loading breeds...</p>
+        </div>
+      </AdminShell>
     );
   }
 
   return (
-    <div className="container-custom section-spacing animate-fade-in">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-4xl font-bold mb-2">Manage Breeds</h1>
-          <p className="text-muted-foreground">Add, edit, or remove breed information</p>
-        </div>
+    <AdminShell
+      title="Manage Breeds"
+      description="Add, edit, or remove breeds"
+      breadcrumbs={[{ label: 'Breeds' }]}
+    >
+      <div className="flex justify-end mb-6">
         <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
-            <Button className="gap-2">
+            <Button className="gap-2 bg-admin-accent hover:bg-admin-accent/90 text-white">
               <Plus className="h-4 w-4" />
               Add Breed
             </Button>
@@ -134,7 +138,7 @@ export default function AdminBreedsPage() {
               </div>
 
               <div>
-                <Label htmlFor="category">Category *</Label>
+                <Label>Category *</Label>
                 <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a category" />
@@ -155,7 +159,7 @@ export default function AdminBreedsPage() {
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Detailed description of the breed"
+                  placeholder="Brief description of this breed"
                   rows={4}
                   required
                 />
@@ -163,8 +167,9 @@ export default function AdminBreedsPage() {
 
               <BlobImageUploader
                 label="Breed Image"
-                onImageSelected={(blob) => setFormData({ ...formData, image: blob })}
                 currentImageUrl={formData.image?.getDirectURL()}
+                onImageSelected={(blob) => setFormData({ ...formData, image: blob })}
+                onImageCleared={() => setFormData({ ...formData, image: null })}
               />
 
               <div className="flex gap-2 justify-end">
@@ -180,42 +185,51 @@ export default function AdminBreedsPage() {
         </Dialog>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {breeds.map((breed) => (
-          <Card key={breed.name}>
-            <CardHeader>
-              {breed.image && (
-                <img
-                  src={breed.image.getDirectURL()}
-                  alt={breed.name}
-                  className="w-full h-40 object-cover rounded-md mb-4"
-                />
-              )}
-              <CardTitle>{breed.name}</CardTitle>
-              <p className="text-sm text-muted-foreground">Category: {breed.category}</p>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{breed.description}</p>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => handleEdit(breed)} className="gap-2">
-                  <Edit className="h-4 w-4" />
-                  Edit
-                </Button>
-                <Button variant="destructive" size="sm" onClick={() => handleDelete(breed.name)} className="gap-2">
-                  <Trash2 className="h-4 w-4" />
-                  Delete
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {breeds.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No breeds yet. Click "Add Breed" to create one.</p>
+      {breeds.length === 0 ? (
+        <div className="text-center py-12 border-2 border-dashed rounded-lg bg-admin-card">
+          <Dog className="h-12 w-12 text-admin-muted mx-auto mb-4" />
+          <p className="text-admin-muted">No breeds yet. Click "Add Breed" to create one.</p>
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {breeds.map((breed) => (
+            <Card key={breed.name} className="admin-card">
+              <CardHeader>
+                {breed.image && (
+                  <img
+                    src={breed.image.getDirectURL()}
+                    alt={breed.name}
+                    className="w-full h-48 object-cover rounded-lg mb-4"
+                  />
+                )}
+                <CardTitle className="flex items-center gap-2">
+                  <Dog className="h-5 w-5 text-admin-accent" />
+                  {breed.name}
+                </CardTitle>
+                <p className="text-sm text-admin-muted">Category: {breed.category}</p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground line-clamp-3">{breed.description}</p>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => handleEdit(breed)} className="gap-2 flex-1">
+                    <Edit className="h-4 w-4" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleDelete(breed.name)}
+                    className="gap-2 flex-1"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
-    </div>
+    </AdminShell>
   );
 }

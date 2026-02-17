@@ -1,43 +1,77 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T12:12:26.123Z",
+  "generatedAt": "2026-02-17T13:08:37.513Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 2,
+    "total": 4,
+    "implemented": 3,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Fix the admin role check so the frontend correctly detects when the signed-in user is an admin, and ensure the Admin navigation link and /admin routes become accessible for admins.",
+        "summary": "Make the Admin Dashboard discoverable and accessible: ensure there is a visible navigation entry to the admin dashboard for administrators and that the admin dashboard is reachable at the /admin route (with sub-routes /admin/categories, /admin/breeds, /admin/videos).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/backend.d.ts",
-          "frontend/src/hooks/useCallerRole.ts",
-          "frontend/src/components/navigation/Navbar.tsx"
+          "frontend/src/components/navigation/Navbar.tsx",
+          "frontend/src/components/auth/RequireAdmin.tsx",
+          "frontend/src/App.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/backend.d.ts",
-          "frontend/src/hooks/useCallerRole.ts"
+          "frontend/src/components/navigation/Navbar.tsx",
+          "frontend/src/components/auth/RequireAdmin.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Ensure the Admin panel provides working sections to add/edit/delete Pet Categories, Breeds, and related YouTube video links, gated behind admin-only access.",
+        "summary": "Implement a reliable admin authorization flow so at least one administrator can successfully pass the frontend admin check (actor.isCallerAdmin) after deployment and can use the admin dashboard end-to-end.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Deliver a complete Admin Dashboard experience with working CRUD for pet categories, breeds, and admin-managed video links, including image upload support, using the existing admin pages and hooks.",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/pages/admin/AdminCategoriesPage.tsx",
+          "frontend/src/pages/admin/AdminBreedsPage.tsx",
+          "frontend/src/pages/admin/AdminVideosPage.tsx",
+          "frontend/src/components/admin/AdminVideoLinksManager.tsx",
+          "frontend/src/components/admin/BlobImageUploader.tsx",
+          "frontend/src/hooks/useAdminVideos.ts",
+          "frontend/src/hooks/useContentManagement.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/admin/AdminCategoriesPage.tsx",
+          "frontend/src/pages/admin/AdminBreedsPage.tsx",
+          "frontend/src/pages/admin/AdminVideosPage.tsx",
+          "frontend/src/components/admin/AdminVideoLinksManager.tsx",
+          "frontend/src/components/admin/BlobImageUploader.tsx",
+          "frontend/src/hooks/useAdminVideos.ts"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Apply a cohesive, distinct visual theme for the admin dashboard pages (layout, typography, spacing, and component styling) that is consistent across /admin, /admin/categories, /admin/breeds, and /admin/videos.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/admin/AdminShell.tsx",
           "frontend/src/pages/admin/AdminLandingPage.tsx",
           "frontend/src/pages/admin/AdminCategoriesPage.tsx",
           "frontend/src/pages/admin/AdminBreedsPage.tsx",
-          "frontend/src/components/admin/AdminVideoLinksManager.tsx",
-          "frontend/src/pages/admin/AdminVideosPage.tsx"
+          "frontend/src/pages/admin/AdminVideosPage.tsx",
+          "frontend/src/index.css"
         ],
         "matchedFiles": [
-          "frontend/src/components/admin/AdminVideoLinksManager.tsx",
-          "frontend/src/pages/admin/AdminVideosPage.tsx"
+          "frontend/src/components/admin/AdminShell.tsx",
+          "frontend/src/pages/admin/AdminLandingPage.tsx",
+          "frontend/src/pages/admin/AdminCategoriesPage.tsx",
+          "frontend/src/pages/admin/AdminBreedsPage.tsx",
+          "frontend/src/pages/admin/AdminVideosPage.tsx",
+          "frontend/src/index.css"
         ]
       }
     ]
@@ -45,18 +79,25 @@
   "changedFiles": [
     "backend/main.mo",
     "build-request.json",
-    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
+    "frontend/src/components/admin/AdminShell.tsx",
     "frontend/src/components/admin/AdminVideoLinksManager.tsx",
-    "frontend/src/config.ts",
+    "frontend/src/components/admin/BlobImageUploader.tsx",
+    "frontend/src/components/auth/RequireAdmin.tsx",
+    "frontend/src/components/navigation/Navbar.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useCallerRole.ts",
+    "frontend/src/hooks/useAdminVideos.ts",
+    "frontend/src/index.css",
+    "frontend/src/pages/admin/AdminBreedsPage.tsx",
+    "frontend/src/pages/admin/AdminCategoriesPage.tsx",
+    "frontend/src/pages/admin/AdminLandingPage.tsx",
     "frontend/src/pages/admin/AdminVideosPage.tsx",
+    "frontend/tailwind.config.js",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

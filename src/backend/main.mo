@@ -12,7 +12,7 @@ import MixinAuthorization "authorization/MixinAuthorization";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 
-// Actor definition
+// Persistent Actor State
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -407,10 +407,15 @@ actor {
     };
   };
 
-  public query ({ caller }) func getVideosByCategory(category : VideoCategory) : async [VideoLink] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view videos");
+  public query ({ caller }) func getAllAdminVideoLinks() : async [VideoLink] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can list all videos");
     };
+    adminVideos.values().toArray();
+  };
+
+  public query func getVideosByCategory(category : VideoCategory) : async [VideoLink] {
+    // Public access - no authentication required for browsing videos
     let videos = adminVideos.toArray().map(
       func((_, video)) { video }
     ).filter(
@@ -510,16 +515,19 @@ actor {
     };
   };
 
-  // Fetch functions for categories and breeds
-  public query ({ caller }) func getAllPetCategories() : async [PetCategory] {
+  // Fetch functions for categories and breeds (public access for browsing)
+  public query func getAllPetCategories() : async [PetCategory] {
+    // Public access - no authentication required for browsing categories
     petCategories.values().toArray();
   };
 
-  public query ({ caller }) func getAllBreeds() : async [Breed] {
+  public query func getAllBreeds() : async [Breed] {
+    // Public access - no authentication required for browsing breeds
     breeds.values().toArray();
   };
 
-  public query ({ caller }) func getBreedsByCategory(category : Text) : async [Breed] {
+  public query func getBreedsByCategory(category : Text) : async [Breed] {
+    // Public access - no authentication required for browsing breeds by category
     breeds.values().filter(func(b) { b.category == category }).toArray();
   };
 };

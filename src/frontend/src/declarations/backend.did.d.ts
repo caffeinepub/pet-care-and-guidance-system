@@ -113,6 +113,7 @@ export interface _SERVICE {
     undefined
   >,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'getAllAdminVideoLinks' : ActorMethod<[], Array<VideoLink>>,
   'getAllBreeds' : ActorMethod<[], Array<Breed>>,
   'getAllFavoriteVideos' : ActorMethod<[], Array<Favorite>>,
   'getAllPetCategories' : ActorMethod<[], Array<PetCategory>>,
