@@ -206,3 +206,38 @@ export function getSecretFromHash(paramName: string): string | null {
 export function getSecretParameter(paramName: string): string | null {
     return getSecretFromHash(paramName);
 }
+
+// Return destination management for post-login redirects
+const RETURN_DESTINATION_KEY = 'returnDestination';
+
+/**
+ * Store the intended destination path for post-login redirect
+ */
+export function storeReturnDestination(path: string): void {
+    storeSessionParameter(RETURN_DESTINATION_KEY, path);
+}
+
+/**
+ * Peek at the stored return destination without consuming it
+ */
+export function peekReturnDestination(): string | null {
+    return getSessionParameter(RETURN_DESTINATION_KEY);
+}
+
+/**
+ * Consume and clear the stored return destination
+ */
+export function consumeReturnDestination(): string | null {
+    const destination = getSessionParameter(RETURN_DESTINATION_KEY);
+    if (destination) {
+        clearSessionParameter(RETURN_DESTINATION_KEY);
+    }
+    return destination;
+}
+
+/**
+ * Clear the stored return destination without returning it
+ */
+export function clearReturnDestination(): void {
+    clearSessionParameter(RETURN_DESTINATION_KEY);
+}

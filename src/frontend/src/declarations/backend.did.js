@@ -20,7 +20,12 @@ export const _CaffeineStorageRefillResult = IDL.Record({
   'topped_up_amount' : IDL.Opt(IDL.Nat),
 });
 export const VideoId = IDL.Nat;
-export const PetType = IDL.Variant({ 'cat' : IDL.Null, 'dog' : IDL.Null });
+export const PetType = IDL.Variant({
+  'cat' : IDL.Null,
+  'dog' : IDL.Null,
+  'other' : IDL.Text,
+  'bird' : IDL.Null,
+});
 export const VideoCategory = IDL.Variant({
   'healthTopic' : IDL.Text,
   'petType' : PetType,
@@ -44,6 +49,13 @@ export const Breed = IDL.Record({
   'description' : IDL.Text,
   'category' : IDL.Text,
   'image' : IDL.Opt(ExternalBlob),
+  'videos' : IDL.Vec(YoutubeVideo),
+});
+export const HealthContent = IDL.Record({
+  'title' : IDL.Text,
+  'description' : IDL.Text,
+  'petType' : PetType,
+  'category' : IDL.Text,
   'videos' : IDL.Vec(YoutubeVideo),
 });
 export const PetId = IDL.Nat;
@@ -126,6 +138,7 @@ export const idlService = IDL.Service({
   'addAdminVideoLink' : IDL.Func([VideoLink], [VideoId], []),
   'addBreed' : IDL.Func([Breed], [], []),
   'addFavorite' : IDL.Func([VideoId, IDL.Text], [], []),
+  'addHealthContent' : IDL.Func([HealthContent], [], []),
   'addPet' : IDL.Func([Pet], [PetId], []),
   'addPetCategory' : IDL.Func([PetCategory], [], []),
   'addVaccination' : IDL.Func(
@@ -134,14 +147,27 @@ export const idlService = IDL.Service({
       [],
     ),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'disableUser' : IDL.Func([IDL.Principal], [], []),
+  'enableUser' : IDL.Func([IDL.Principal, UserProfile], [], []),
   'getAllAdminVideoLinks' : IDL.Func([], [IDL.Vec(VideoLink)], ['query']),
   'getAllBreeds' : IDL.Func([], [IDL.Vec(Breed)], ['query']),
   'getAllFavoriteVideos' : IDL.Func([], [IDL.Vec(Favorite)], ['query']),
+  'getAllHealthContent' : IDL.Func([], [IDL.Vec(HealthContent)], ['query']),
   'getAllPetCategories' : IDL.Func([], [IDL.Vec(PetCategory)], ['query']),
   'getBreedsByCategory' : IDL.Func([IDL.Text], [IDL.Vec(Breed)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getDashboardInfo' : IDL.Func([], [UserProfile], ['query']),
+  'getHealthContentByCategory' : IDL.Func(
+      [IDL.Text],
+      [IDL.Vec(HealthContent)],
+      ['query'],
+    ),
+  'getHealthContentByPetType' : IDL.Func(
+      [PetType],
+      [IDL.Vec(HealthContent)],
+      ['query'],
+    ),
   'getPet' : IDL.Func([PetId], [Pet], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
@@ -163,12 +189,14 @@ export const idlService = IDL.Service({
   'removeAdminVideoLink' : IDL.Func([VideoId], [], []),
   'removeBreed' : IDL.Func([IDL.Text], [], []),
   'removeFavorite' : IDL.Func([VideoId], [], []),
+  'removeHealthContent' : IDL.Func([IDL.Text], [], []),
   'removePet' : IDL.Func([PetId], [], []),
   'removePetCategory' : IDL.Func([IDL.Text], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'submitOnboardingPet' : IDL.Func([Pet], [PetId], []),
   'updateAdminVideoLink' : IDL.Func([VideoId, VideoLink], [], []),
   'updateBreed' : IDL.Func([IDL.Text, Breed], [], []),
+  'updateHealthContent' : IDL.Func([IDL.Text, HealthContent], [], []),
   'updatePet' : IDL.Func([PetId, Pet], [], []),
   'updatePetCategory' : IDL.Func([IDL.Text, PetCategory], [], []),
 });
@@ -188,7 +216,12 @@ export const idlFactory = ({ IDL }) => {
     'topped_up_amount' : IDL.Opt(IDL.Nat),
   });
   const VideoId = IDL.Nat;
-  const PetType = IDL.Variant({ 'cat' : IDL.Null, 'dog' : IDL.Null });
+  const PetType = IDL.Variant({
+    'cat' : IDL.Null,
+    'dog' : IDL.Null,
+    'other' : IDL.Text,
+    'bird' : IDL.Null,
+  });
   const VideoCategory = IDL.Variant({
     'healthTopic' : IDL.Text,
     'petType' : PetType,
@@ -209,6 +242,13 @@ export const idlFactory = ({ IDL }) => {
     'description' : IDL.Text,
     'category' : IDL.Text,
     'image' : IDL.Opt(ExternalBlob),
+    'videos' : IDL.Vec(YoutubeVideo),
+  });
+  const HealthContent = IDL.Record({
+    'title' : IDL.Text,
+    'description' : IDL.Text,
+    'petType' : PetType,
+    'category' : IDL.Text,
     'videos' : IDL.Vec(YoutubeVideo),
   });
   const PetId = IDL.Nat;
@@ -291,6 +331,7 @@ export const idlFactory = ({ IDL }) => {
     'addAdminVideoLink' : IDL.Func([VideoLink], [VideoId], []),
     'addBreed' : IDL.Func([Breed], [], []),
     'addFavorite' : IDL.Func([VideoId, IDL.Text], [], []),
+    'addHealthContent' : IDL.Func([HealthContent], [], []),
     'addPet' : IDL.Func([Pet], [PetId], []),
     'addPetCategory' : IDL.Func([PetCategory], [], []),
     'addVaccination' : IDL.Func(
@@ -299,14 +340,27 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'disableUser' : IDL.Func([IDL.Principal], [], []),
+    'enableUser' : IDL.Func([IDL.Principal, UserProfile], [], []),
     'getAllAdminVideoLinks' : IDL.Func([], [IDL.Vec(VideoLink)], ['query']),
     'getAllBreeds' : IDL.Func([], [IDL.Vec(Breed)], ['query']),
     'getAllFavoriteVideos' : IDL.Func([], [IDL.Vec(Favorite)], ['query']),
+    'getAllHealthContent' : IDL.Func([], [IDL.Vec(HealthContent)], ['query']),
     'getAllPetCategories' : IDL.Func([], [IDL.Vec(PetCategory)], ['query']),
     'getBreedsByCategory' : IDL.Func([IDL.Text], [IDL.Vec(Breed)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getDashboardInfo' : IDL.Func([], [UserProfile], ['query']),
+    'getHealthContentByCategory' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(HealthContent)],
+        ['query'],
+      ),
+    'getHealthContentByPetType' : IDL.Func(
+        [PetType],
+        [IDL.Vec(HealthContent)],
+        ['query'],
+      ),
     'getPet' : IDL.Func([PetId], [Pet], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
@@ -328,12 +382,14 @@ export const idlFactory = ({ IDL }) => {
     'removeAdminVideoLink' : IDL.Func([VideoId], [], []),
     'removeBreed' : IDL.Func([IDL.Text], [], []),
     'removeFavorite' : IDL.Func([VideoId], [], []),
+    'removeHealthContent' : IDL.Func([IDL.Text], [], []),
     'removePet' : IDL.Func([PetId], [], []),
     'removePetCategory' : IDL.Func([IDL.Text], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'submitOnboardingPet' : IDL.Func([Pet], [PetId], []),
     'updateAdminVideoLink' : IDL.Func([VideoId, VideoLink], [], []),
     'updateBreed' : IDL.Func([IDL.Text, Breed], [], []),
+    'updateHealthContent' : IDL.Func([IDL.Text, HealthContent], [], []),
     'updatePet' : IDL.Func([PetId, Pet], [], []),
     'updatePetCategory' : IDL.Func([IDL.Text, PetCategory], [], []),
   });

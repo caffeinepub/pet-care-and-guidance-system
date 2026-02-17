@@ -131,3 +131,10 @@
         border-color: oklch(var(--admin-border) / 0.2);
     }
 }
+
+@layer utilities {
+    /* Ensure portaled content (Select dropdowns, popovers) render above everything */
+    [data-radix-popper-content-wrapper] {
+        z-index: 100 !important;
+    }
+}

@@ -29,6 +29,26 @@ export interface PetCategory {
     videos: Array<YoutubeVideo>;
 }
 export type Timestamp = bigint;
+export type PetType = {
+    __kind__: "cat";
+    cat: null;
+} | {
+    __kind__: "dog";
+    dog: null;
+} | {
+    __kind__: "other";
+    other: string;
+} | {
+    __kind__: "bird";
+    bird: null;
+};
+export interface HealthContent {
+    title: string;
+    description: string;
+    petType: PetType;
+    category: string;
+    videos: Array<YoutubeVideo>;
+}
 export interface Favorite {
     name: string;
     videoId: VideoId;
@@ -91,10 +111,6 @@ export interface UserProfile {
     profilePhoto?: ExternalBlob;
     email: string;
 }
-export enum PetType {
-    cat = "cat",
-    dog = "dog"
-}
 export enum UserRole {
     admin = "admin",
     user = "user",
@@ -108,18 +124,24 @@ export interface backendInterface {
     addAdminVideoLink(video: VideoLink): Promise<VideoId>;
     addBreed(breed: Breed): Promise<void>;
     addFavorite(videoId: VideoId, name: string): Promise<void>;
+    addHealthContent(content: HealthContent): Promise<void>;
     addPet(pet: Pet): Promise<PetId>;
     addPetCategory(category: PetCategory): Promise<void>;
     addVaccination(petId: PetId, name: string, dueDate: Timestamp, reminderFrequency: VaccinationFrequency): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    disableUser(user: Principal): Promise<void>;
+    enableUser(user: Principal, profile: UserProfile): Promise<void>;
     getAllAdminVideoLinks(): Promise<Array<VideoLink>>;
     getAllBreeds(): Promise<Array<Breed>>;
     getAllFavoriteVideos(): Promise<Array<Favorite>>;
+    getAllHealthContent(): Promise<Array<HealthContent>>;
     getAllPetCategories(): Promise<Array<PetCategory>>;
     getBreedsByCategory(category: string): Promise<Array<Breed>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getDashboardInfo(): Promise<UserProfile>;
+    getHealthContentByCategory(category: string): Promise<Array<HealthContent>>;
+    getHealthContentByPetType(petType: PetType): Promise<Array<HealthContent>>;
     getPet(petId: PetId): Promise<Pet>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     getVaccinationReminders(): Promise<Array<[string, Array<Vaccination>]>>;
@@ -129,12 +151,14 @@ export interface backendInterface {
     removeAdminVideoLink(videoId: VideoId): Promise<void>;
     removeBreed(name: string): Promise<void>;
     removeFavorite(videoId: VideoId): Promise<void>;
+    removeHealthContent(title: string): Promise<void>;
     removePet(petId: PetId): Promise<void>;
     removePetCategory(name: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     submitOnboardingPet(pet: Pet): Promise<PetId>;
     updateAdminVideoLink(videoId: VideoId, updatedVideo: VideoLink): Promise<void>;
     updateBreed(name: string, updatedBreed: Breed): Promise<void>;
+    updateHealthContent(title: string, updatedContent: HealthContent): Promise<void>;
     updatePet(petId: PetId, updatedPet: Pet): Promise<void>;
     updatePetCategory(name: string, updatedCategory: PetCategory): Promise<void>;
 }

@@ -29,6 +29,8 @@ export default function PetDetailPage() {
     );
   }
 
+  const imageUrl = petData.imageUrl || '/assets/generated/placeholder-pet.dim_1200x800.png';
+
   return (
     <div className="container-custom section-spacing animate-fade-in">
       <Breadcrumbs
@@ -44,6 +46,14 @@ export default function PetDetailPage() {
           <div>
             <h1 className="text-4xl font-bold mb-4">{petData.name}</h1>
             <p className="text-lg text-muted-foreground">{petData.description}</p>
+          </div>
+
+          <div className="mb-8">
+            <img 
+              src={imageUrl}
+              alt={petData.name}
+              className="w-full max-w-2xl h-auto rounded-lg object-cover shadow-lg"
+            />
           </div>
 
           <Card>
@@ -66,7 +76,7 @@ export default function PetDetailPage() {
             <h2 className="text-2xl font-bold mb-4">Helpful Videos</h2>
             <div className="space-y-4">
               {petData.videos.map((video, idx) => (
-                <YouTubeEmbed key={idx} title={video.title} url={video.url} />
+                <YouTubeEmbed key={idx} title={video.title} url={video.url} videoId={`${petId}-${idx}`} />
               ))}
             </div>
           </div>

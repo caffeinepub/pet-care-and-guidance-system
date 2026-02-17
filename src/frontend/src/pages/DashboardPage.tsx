@@ -11,6 +11,7 @@ import { getVaccinationReminderMessage } from '../lib/vaccinationReminders';
 import { useVaccinationDueTodayCountdown } from '../hooks/useVaccinationDueTodayCountdown';
 import { getDailyCareTip, getRecommendedVideos } from '../content/recommendations';
 import DashboardPetOnboarding from '../components/onboarding/DashboardPetOnboarding';
+import { getPetTypeDisplayName } from '../utils/petTypeHelpers';
 
 export default function DashboardPage() {
   const { identity } = useInternetIdentity();
@@ -134,8 +135,8 @@ export default function DashboardPage() {
                         <div key={Number(pet.id)} className="flex items-start justify-between p-4 rounded-lg border bg-card">
                           <div className="space-y-1">
                             <h4 className="font-semibold">{pet.name}</h4>
-                            <p className="text-sm text-muted-foreground capitalize">
-                              {pet.petType} • {genderDisplay} • {pet.age.toString()} years old
+                            <p className="text-sm text-muted-foreground">
+                              {getPetTypeDisplayName(pet.petType)} • {genderDisplay} • {pet.age.toString()} years old
                               {pet.breed && ` • ${pet.breed}`}
                             </p>
                             {lastVaccinated && (
@@ -152,8 +153,8 @@ export default function DashboardPage() {
                               </div>
                             )}
                           </div>
-                          <Badge variant={pet.petType === 'dog' ? 'default' : 'secondary'}>
-                            {pet.petType}
+                          <Badge variant="secondary">
+                            {getPetTypeDisplayName(pet.petType)}
                           </Badge>
                         </div>
                       );
@@ -298,16 +299,16 @@ export default function DashboardPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-primary" />
-                  AI Insights
+                  AI Guidance
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <p className="text-muted-foreground">
-                  Based on your pets' profiles, we recommend regular check-ups and maintaining up-to-date vaccination records.
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Get instant help with behavioral assessments, emergency guidance, and breed identification.
                 </p>
                 <Link to="/ai-assistant">
-                  <Button variant="link" className="p-0 h-auto">
-                    Get personalized health assessment →
+                  <Button variant="outline" className="w-full">
+                    Open AI Assistant
                   </Button>
                 </Link>
               </CardContent>

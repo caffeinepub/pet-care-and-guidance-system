@@ -7,12 +7,16 @@ import Text "mo:core/Text";
 import Time "mo:core/Time";
 import Iter "mo:core/Iter";
 import Int "mo:core/Int";
+
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
+import Migration "migration";
 
 // Persistent Actor State
+
+(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -20,7 +24,7 @@ actor {
 
   // Type definitions
   type PetId = Nat;
-  type PetType = { #dog; #cat };
+  public type PetType = { #dog; #cat; #bird; #other : Text };
   type Timestamp = Int;
   type AgeRange = { #puppyKitten; #adult; #senior };
   type VaccinationFrequency = { #everyYear; #everyThreeYears };
@@ -100,13 +104,36 @@ actor {
     videos : [YoutubeVideo];
   };
 
+  public type HealthContent = {
+    title : Text;
+    description : Text;
+    category : Text;
+    petType : PetType;
+    videos : [YoutubeVideo];
+  };
+
   // Persistent data stores
   let userProfiles = Map.empty<Principal, ?UserProfile>();
   let adminVideos = Map.empty<Nat, VideoLink>();
   let petCategories = Map.empty<Text, PetCategory>();
   let breeds = Map.empty<Text, Breed>();
+  let healthContent = Map.empty<Text, HealthContent>();
 
   // Helper functions
+  func isUserDisabled(user : Principal) : Bool {
+    switch (userProfiles.get(user)) {
+      case (null) { false }; // User not in system yet
+      case (?null) { true }; // Explicitly disabled
+      case (??_) { false }; // Active user with profile
+    };
+  };
+
+  func ensureUserNotDisabled(caller : Principal) {
+    if (isUserDisabled(caller)) {
+      Runtime.trap("Unauthorized: User account is disabled");
+    };
+  };
+
   func findAndValidatePet(caller : Principal, petId : PetId) : Pet {
     switch (userProfiles.get(caller)) {
       case (null) { Runtime.trap("Profile not found") };
@@ -117,7 +144,7 @@ actor {
           case (?pet) { pet };
         };
       };
-      case (?null) { Runtime.trap("Profile not found") };
+      case (?null) { Runtime.trap("User account is disabled") };
     };
   };
 
@@ -151,6 +178,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view profiles");
     };
+    ensureUserNotDisabled(caller);
     switch (userProfiles.get(caller)) {
       case (null) { null };
       case (?profile) { profile };
@@ -160,6 +188,9 @@ actor {
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
     if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only view your own profile");
+    };
+    if (caller == user) {
+      ensureUserNotDisabled(caller);
     };
     switch (userProfiles.get(user)) {
       case (null) { null };
@@ -171,6 +202,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
+    ensureUserNotDisabled(caller);
     userProfiles.add(caller, ?profile);
   };
 
@@ -178,9 +210,10 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view dashboard");
     };
+    ensureUserNotDisabled(caller);
     switch (userProfiles.get(caller)) {
       case (null) { emptyProfile() };
-      case (?null) { emptyProfile() };
+      case (?null) { Runtime.trap("User account is disabled") };
       case (??profile) { profile };
     };
   };
@@ -200,6 +233,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view pets");
     };
+    ensureUserNotDisabled(caller);
     findAndValidatePet(caller, petId);
   };
 
@@ -207,6 +241,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can add pets");
     };
+    ensureUserNotDisabled(caller);
     let petId = Time.now().toNat();
     switch (userProfiles.get(caller)) {
       case (null) { Runtime.trap("Profile not found") };
@@ -228,7 +263,7 @@ actor {
           pets = up.pets.concat([newPet]);
         });
       };
-      case (?null) { Runtime.trap("Profile not found") };
+      case (?null) { Runtime.trap("User account is disabled") };
     };
     petId;
   };
@@ -237,6 +272,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can update pets");
     };
+    ensureUserNotDisabled(caller);
     let _ = findAndValidatePet(caller, petId);
     switch (userProfiles.get(caller)) {
       case (null) { Runtime.trap("Profile not found") };
@@ -246,7 +282,7 @@ actor {
           pets = getUpdatedPets(profile.pets, petId, updatedPet);
         });
       };
-      case (?null) { Runtime.trap("Profile not found") };
+      case (?null) { Runtime.trap("User account is disabled") };
     };
   };
 
@@ -254,6 +290,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can remove pets");
     };
+    ensureUserNotDisabled(caller);
     switch (userProfiles.get(caller)) {
       case (null) { Runtime.trap("Profile not found") };
       case (??profile) {
@@ -263,7 +300,7 @@ actor {
           pets = newPets;
         });
       };
-      case (?null) { Runtime.trap("Profile not found") };
+      case (?null) { Runtime.trap("User account is disabled") };
     };
   };
 
@@ -272,6 +309,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can add vaccinations");
     };
+    ensureUserNotDisabled(caller);
     let pet = findAndValidatePet(caller, petId);
     let vaccination : Vaccination = {
       name;
@@ -291,7 +329,7 @@ actor {
           pets = getUpdatedPets(profile.pets, petId, updatedPet);
         });
       };
-      case (?null) { Runtime.trap("Profile not found") };
+      case (?null) { Runtime.trap("User account is disabled") };
     };
   };
 
@@ -299,6 +337,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can mark vaccinations");
     };
+    ensureUserNotDisabled(caller);
     let pet = findAndValidatePet(caller, petId);
     let updatedVaccinations = pet.vaccinations.map(
       func(vacc) {
@@ -324,7 +363,7 @@ actor {
           pets = getUpdatedPets(profile.pets, petId, updatedPet);
         });
       };
-      case (?null) { Runtime.trap("Profile not found") };
+      case (?null) { Runtime.trap("User account is disabled") };
     };
   };
 
@@ -333,6 +372,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can add favorites");
     };
+    ensureUserNotDisabled(caller);
     let favorite : Favorite = { videoId; name };
     switch (userProfiles.get(caller)) {
       case (null) { Runtime.trap("Profile not found") };
@@ -342,7 +382,7 @@ actor {
           favorites = profile.favorites.concat([favorite]);
         });
       };
-      case (?null) { Runtime.trap("Profile not found") };
+      case (?null) { Runtime.trap("User account is disabled") };
     };
   };
 
@@ -350,6 +390,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can remove favorites");
     };
+    ensureUserNotDisabled(caller);
     switch (userProfiles.get(caller)) {
       case (null) { Runtime.trap("Profile not found") };
       case (??profile) {
@@ -359,7 +400,7 @@ actor {
           favorites = newFavorites;
         });
       };
-      case (?null) { Runtime.trap("Profile not found") };
+      case (?null) { Runtime.trap("User account is disabled") };
     };
   };
 
@@ -367,10 +408,11 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view favorites");
     };
+    ensureUserNotDisabled(caller);
     switch (userProfiles.get(caller)) {
       case (null) { Runtime.trap("Profile not found") };
       case (??profile) { profile.favorites };
-      case (?null) { Runtime.trap("Profile not found") };
+      case (?null) { Runtime.trap("User account is disabled") };
     };
   };
 
@@ -429,6 +471,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can fetch vaccination reminders");
     };
+    ensureUserNotDisabled(caller);
     switch (userProfiles.get(caller)) {
       case (null) { Runtime.trap("Profile not found") };
       case (??profile) {
@@ -439,7 +482,7 @@ actor {
         );
         reminders;
       };
-      case (?null) { Runtime.trap("Profile not found") };
+      case (?null) { Runtime.trap("User account is disabled") };
     };
   };
 
@@ -448,6 +491,7 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can submit onboarding pets");
     };
+    ensureUserNotDisabled(caller);
     await addPet(pet);
   };
 
@@ -529,5 +573,73 @@ actor {
   public query func getBreedsByCategory(category : Text) : async [Breed] {
     // Public access - no authentication required for browsing breeds by category
     breeds.values().filter(func(b) { b.category == category }).toArray();
+  };
+
+  // Health & Care content management (admin only)
+  public shared ({ caller }) func addHealthContent(content : HealthContent) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can add health content");
+    };
+    healthContent.add(content.title, content);
+  };
+
+  public shared ({ caller }) func updateHealthContent(title : Text, updatedContent : HealthContent) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can update health content");
+    };
+    switch (healthContent.get(title)) {
+      case (null) { Runtime.trap("Health content not found") };
+      case (?_) {
+        healthContent.add(title, updatedContent);
+      };
+    };
+  };
+
+  public shared ({ caller }) func removeHealthContent(title : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can remove health content");
+    };
+    switch (healthContent.get(title)) {
+      case (null) { Runtime.trap("Health content not found") };
+      case (?_) {
+        healthContent.remove(title);
+      };
+    };
+  };
+
+  public query func getAllHealthContent() : async [HealthContent] {
+    // Public access - no authentication required for browsing health content
+    healthContent.values().toArray();
+  };
+
+  public query func getHealthContentByCategory(category : Text) : async [HealthContent] {
+    // Public access - no authentication required for browsing health content
+    let content = healthContent.values().filter(
+      func(h) { h.category == category }
+    );
+    content.toArray();
+  };
+
+  public query func getHealthContentByPetType(petType : PetType) : async [HealthContent] {
+    // Public access - no authentication required for browsing health content
+    let content = healthContent.values().filter(
+      func(h) { h.petType == petType }
+    );
+    content.toArray();
+  };
+
+  // User account management (admin only)
+  public shared ({ caller }) func disableUser(user : Principal) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can disable users");
+    };
+    userProfiles.add(user, null);
+  };
+
+  public shared ({ caller }) func enableUser(user : Principal, profile : UserProfile) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can enable users");
+    };
+    userProfiles.add(user, ?profile);
   };
 };

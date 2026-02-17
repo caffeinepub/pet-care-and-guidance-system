@@ -5,13 +5,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Button } from '../../components/ui/button';
 import { petsCatalog } from '../../content/pets/petsCatalog';
 import { ArrowRight } from 'lucide-react';
+import { slugMatchesCategory, mapSlugToDisplayName } from '../../utils/catalogRouting';
 
 export default function PetCategoryPage() {
   const { category } = useParams({ from: '/pets/$category' });
   const { data: backendCategories = [] } = useGetAllPetCategories();
   
-  const backendCategory = backendCategories.find(c => c.name.toLowerCase().replace(/\s+/g, '-') === category);
+  // Try to find backend category using slug matching
+  const backendCategory = backendCategories.find(c => slugMatchesCategory(category, c.name));
+  
+  // Always fall back to static catalog
   const staticCategory = petsCatalog[category];
+  
+  // Use backend data if available, otherwise static
   const categoryData = backendCategory || staticCategory;
 
   if (!categoryData) {
@@ -22,8 +28,8 @@ export default function PetCategoryPage() {
     );
   }
 
-  const displayName = backendCategory ? backendCategory.name : staticCategory?.name || category;
-  const displayDescription = backendCategory ? backendCategory.description : staticCategory?.description || '';
+  const displayName = backendCategory ? backendCategory.name : (staticCategory?.name || mapSlugToDisplayName(category));
+  const displayDescription = backendCategory ? backendCategory.description : (staticCategory?.description || '');
 
   return (
     <div className="container-custom section-spacing animate-fade-in">

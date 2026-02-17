@@ -90,6 +90,11 @@ export default function AdminCategoriesPage() {
     }
   };
 
+  const handleOpenDialog = () => {
+    resetForm();
+    setDialogOpen(true);
+  };
+
   if (isLoading) {
     return (
       <AdminShell title="Manage Pet Categories" description="Add, edit, or remove pet categories">
@@ -110,7 +115,10 @@ export default function AdminCategoriesPage() {
       <div className="flex justify-end mb-6">
         <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
-            <Button className="gap-2 bg-admin-accent hover:bg-admin-accent/90 text-white">
+            <Button
+              onClick={handleOpenDialog}
+              className="gap-2 bg-admin-accent hover:bg-admin-accent/90 text-white"
+            >
               <Plus className="h-4 w-4" />
               Add Category
             </Button>
@@ -196,6 +204,7 @@ export default function AdminCategoriesPage() {
                     variant="destructive"
                     size="sm"
                     onClick={() => handleDelete(category.name)}
+                    disabled={removeCategory.isPending}
                     className="gap-2 flex-1"
                   >
                     <Trash2 className="h-4 w-4" />

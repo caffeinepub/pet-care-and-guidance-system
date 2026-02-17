@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import YouTubeEmbed from '../../components/media/YouTubeEmbed';
 import FavoriteButton from '../../components/favorites/FavoriteButton';
 import { breedsCatalog } from '../../content/pets/breedsCatalog';
+import { slugMatchesBreed, mapSlugToDisplayName } from '../../utils/catalogRouting';
 import type { Breed } from '../../backend';
 
 export default function BreedDetailPage() {
@@ -13,7 +14,8 @@ export default function BreedDetailPage() {
   const { data: backendBreeds = [] } = useGetAllBreeds();
   const staticBreeds = breedsCatalog[category] || [];
 
-  const backendBreed = backendBreeds.find(b => b.name.toLowerCase().replace(/\s+/g, '-') === breedId);
+  // Try to find breed using slug matching
+  const backendBreed = backendBreeds.find(b => slugMatchesBreed(breedId, b.name));
   const staticBreed = staticBreeds.find(b => b.id === breedId);
   const breed = backendBreed || staticBreed;
 
@@ -40,12 +42,14 @@ export default function BreedDetailPage() {
     ? adminVideos.map(v => ({ title: v.title, url: v.url }))
     : breed.videos;
 
+  const displayCategoryName = mapSlugToDisplayName(category);
+
   return (
     <div className="container-custom section-spacing animate-fade-in">
       <Breadcrumbs
         items={[
           { label: 'Pets', to: '/pets' },
-          { label: category.charAt(0).toUpperCase() + category.slice(1), to: `/pets/${category}` },
+          { label: displayCategoryName, to: `/pets/${category}` },
           { label: 'Breeds', to: `/pets/${category}/breeds` },
           { label: breed.name },
         ]}
@@ -56,15 +60,23 @@ export default function BreedDetailPage() {
         <FavoriteButton itemId={breedId} itemName={breed.name} type="breed" />
       </div>
 
-      {imageUrl && (
+      {imageUrl ? (
         <div className="mb-8">
           <img 
             src={imageUrl} 
             alt={breed.name}
             className="w-full max-w-2xl h-auto rounded-lg object-cover shadow-lg"
             onError={(e) => {
-              e.currentTarget.src = '/assets/catalog/placeholders/breed-placeholder.dim_800x500.png';
+              e.currentTarget.src = '/assets/generated/placeholder-pet.dim_1200x800.png';
             }}
+          />
+        </div>
+      ) : (
+        <div className="mb-8">
+          <img 
+            src="/assets/generated/placeholder-pet.dim_1200x800.png"
+            alt={breed.name}
+            className="w-full max-w-2xl h-auto rounded-lg object-cover shadow-lg"
           />
         </div>
       )}

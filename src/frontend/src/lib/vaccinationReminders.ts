@@ -4,6 +4,7 @@ export interface VaccinationReminder {
   message: string;
   variant: 'urgent' | 'warning' | 'info';
   isDueToday: boolean;
+  category: 'overdue' | 'today' | 'tomorrow' | 'this-week' | 'this-month' | 'later';
 }
 
 export function getVaccinationReminderMessage(dueDate: Timestamp): VaccinationReminder {
@@ -13,58 +14,48 @@ export function getVaccinationReminderMessage(dueDate: Timestamp): VaccinationRe
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
   if (diffDays < 0) {
+    const overdueDays = Math.abs(diffDays);
     return {
-      message: `Overdue by ${Math.abs(diffDays)} day${Math.abs(diffDays) !== 1 ? 's' : ''}`,
+      message: `Overdue by ${overdueDays} day${overdueDays !== 1 ? 's' : ''}`,
       variant: 'urgent',
       isDueToday: false,
+      category: 'overdue',
     };
   } else if (diffDays === 0) {
     return {
-      message: 'Due today',
+      message: 'Vaccination is due today',
       variant: 'urgent',
       isDueToday: true,
+      category: 'today',
     };
   } else if (diffDays === 1) {
     return {
-      message: 'Due tomorrow',
+      message: 'Vaccination is due tomorrow',
       variant: 'warning',
       isDueToday: false,
-    };
-  } else if (diffDays === 2) {
-    return {
-      message: '2 days left',
-      variant: 'warning',
-      isDueToday: false,
+      category: 'tomorrow',
     };
   } else if (diffDays <= 7) {
     return {
-      message: `${diffDays} days left`,
+      message: `Vaccination is due this week (${diffDays} days)`,
       variant: 'warning',
       isDueToday: false,
+      category: 'this-week',
     };
   } else if (diffDays <= 30) {
     return {
-      message: `${diffDays} days left`,
+      message: `Vaccination is due this month (${diffDays} days)`,
       variant: 'info',
       isDueToday: false,
-    };
-  } else if (diffDays <= 60) {
-    return {
-      message: `${Math.floor(diffDays / 30)} month left`,
-      variant: 'info',
-      isDueToday: false,
-    };
-  } else if (diffDays <= 90) {
-    return {
-      message: `${Math.floor(diffDays / 30)} months left`,
-      variant: 'info',
-      isDueToday: false,
+      category: 'this-month',
     };
   } else {
+    const months = Math.floor(diffDays / 30);
     return {
-      message: `${Math.floor(diffDays / 30)} months left`,
+      message: `Vaccination due in ${months} month${months !== 1 ? 's' : ''}`,
       variant: 'info',
       isDueToday: false,
+      category: 'later',
     };
   }
 }

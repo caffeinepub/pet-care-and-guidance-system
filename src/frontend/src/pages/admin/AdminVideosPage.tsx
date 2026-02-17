@@ -12,13 +12,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import AdminVideoLinksManager from '../../components/admin/AdminVideoLinksManager';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
-import type { VideoLink, VideoCategory, PetType } from '../../backend';
+import type { VideoLink, VideoCategory } from '../../backend';
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
+import { petTypeToString, stringToPetType } from '../../utils/petTypeHelpers';
 
 export default function AdminVideosPage() {
   const { identity } = useInternetIdentity();
-  const { data: breeds = [] } = useGetAllBreeds();
-  const { data: categories = [] } = useGetAllPetCategories();
+  const { data: breeds = [], isLoading: breedsLoading } = useGetAllBreeds();
+  const { data: categories = [], isLoading: categoriesLoading } = useGetAllPetCategories();
   const addVideo = useAddAdminVideo();
   const updateVideo = useUpdateAdminVideo();
   const removeVideo = useRemoveAdminVideo();
@@ -33,6 +34,8 @@ export default function AdminVideosPage() {
     categoryType: 'breed' as 'breed' | 'category' | 'health',
     categoryValue: '',
   });
+
+  const isLoading = breedsLoading || categoriesLoading;
 
   const resetForm = () => {
     setFormData({
@@ -57,7 +60,7 @@ export default function AdminVideosPage() {
       categoryValue = video.category.breed;
     } else if (video.category.__kind__ === 'petType') {
       categoryType = 'category';
-      categoryValue = video.category.petType;
+      categoryValue = petTypeToString(video.category.petType);
     } else if (video.category.__kind__ === 'healthTopic') {
       categoryType = 'health';
       categoryValue = video.category.healthTopic;
@@ -92,8 +95,8 @@ export default function AdminVideosPage() {
     } else if (formData.categoryType === 'health') {
       videoCategory = { __kind__: 'healthTopic', healthTopic: formData.categoryValue };
     } else {
-      // For pet type categories, use PetType enum values (cat/dog)
-      videoCategory = { __kind__: 'petType', petType: formData.categoryValue as PetType };
+      // For pet type categories, convert string to PetType
+      videoCategory = { __kind__: 'petType', petType: stringToPetType(formData.categoryValue) };
     }
 
     const videoData: VideoLink = {
@@ -137,6 +140,21 @@ export default function AdminVideosPage() {
     setDialogOpen(true);
   };
 
+  if (isLoading) {
+    return (
+      <AdminShell
+        title="Manage Video Links"
+        description="Add YouTube video links for breeds, categories, and health topics"
+        breadcrumbs={[{ label: 'Videos' }]}
+      >
+        <div className="text-center py-12">
+          <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-admin-accent border-t-transparent mx-auto"></div>
+          <p className="text-admin-muted">Loading...</p>
+        </div>
+      </AdminShell>
+    );
+  }
+
   return (
     <AdminShell
       title="Manage Video Links"
@@ -151,7 +169,7 @@ export default function AdminVideosPage() {
               Add Video
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingVideo ? 'Edit Video' : 'Add New Video'}</DialogTitle>
             </DialogHeader>
@@ -195,9 +213,9 @@ export default function AdminVideosPage() {
                   <SelectTrigger>
                     <SelectValue placeholder="Select category type" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-[100]">
                     <SelectItem value="breed">Breed</SelectItem>
-                    <SelectItem value="category">Pet Type (Cat/Dog)</SelectItem>
+                    <SelectItem value="category">Pet Type (Cat/Dog/Bird)</SelectItem>
                     <SelectItem value="health">Health Topic</SelectItem>
                   </SelectContent>
                 </Select>
@@ -210,12 +228,16 @@ export default function AdminVideosPage() {
                     <SelectTrigger>
                       <SelectValue placeholder="Select a breed" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {breeds.map((breed) => (
-                        <SelectItem key={breed.name} value={breed.name}>
-                          {breed.name} ({breed.category})
-                        </SelectItem>
-                      ))}
+                    <SelectContent className="z-[100]">
+                      {breeds.length === 0 ? (
+                        <div className="p-2 text-sm text-muted-foreground">No breeds available</div>
+                      ) : (
+                        breeds.map((breed) => (
+                          <SelectItem key={breed.name} value={breed.name}>
+                            {breed.name} ({breed.category})
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -228,9 +250,10 @@ export default function AdminVideosPage() {
                     <SelectTrigger>
                       <SelectValue placeholder="Select a pet type" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-[100]">
                       <SelectItem value="cat">Cats</SelectItem>
                       <SelectItem value="dog">Dogs</SelectItem>
+                      <SelectItem value="bird">Birds</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -262,14 +285,14 @@ export default function AdminVideosPage() {
         </Dialog>
       </div>
 
-      <Tabs value={selectedTab} onValueChange={(value: any) => setSelectedTab(value)} className="admin-tabs">
-        <TabsList className="bg-admin-card">
-          <TabsTrigger value="breed">Breed Videos</TabsTrigger>
-          <TabsTrigger value="category">Pet Type Videos</TabsTrigger>
-          <TabsTrigger value="health">Health Videos</TabsTrigger>
+      <Tabs value={selectedTab} onValueChange={(value: any) => setSelectedTab(value)}>
+        <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsTrigger value="breed">By Breed</TabsTrigger>
+          <TabsTrigger value="category">By Pet Type</TabsTrigger>
+          <TabsTrigger value="health">By Health Topic</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="breed" className="mt-6">
+        <TabsContent value="breed">
           <AdminVideoLinksManager
             type="breed"
             breeds={breeds}
@@ -278,7 +301,7 @@ export default function AdminVideosPage() {
           />
         </TabsContent>
 
-        <TabsContent value="category" className="mt-6">
+        <TabsContent value="category">
           <AdminVideoLinksManager
             type="category"
             categories={categories}
@@ -287,7 +310,7 @@ export default function AdminVideosPage() {
           />
         </TabsContent>
 
-        <TabsContent value="health" className="mt-6">
+        <TabsContent value="health">
           <AdminVideoLinksManager
             type="health"
             onEdit={handleEdit}

@@ -1,11 +1,13 @@
 import { useState } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 import { useGetVideosByCategory } from '../../hooks/useAdminVideos';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Label } from '../ui/label';
-import { Edit, Trash2, Video, ExternalLink } from 'lucide-react';
-import type { VideoCategory, VideoLink, PetType } from '../../backend';
+import { Edit, Trash2, Video, ExternalLink, AlertCircle } from 'lucide-react';
+import type { VideoCategory, VideoLink } from '../../backend';
+import { stringToPetType } from '../../utils/petTypeHelpers';
 
 interface AdminVideoLinksManagerProps {
   type: 'breed' | 'category' | 'health';
@@ -22,6 +24,7 @@ export default function AdminVideoLinksManager({
   onEdit,
   onDelete,
 }: AdminVideoLinksManagerProps) {
+  const navigate = useNavigate();
   const [selectedItem, setSelectedItem] = useState<string>('');
 
   // Build the video category based on type and selection
@@ -30,8 +33,8 @@ export default function AdminVideoLinksManager({
     if (type === 'breed') {
       videoCategory = { __kind__: 'breed', breed: selectedItem };
     } else if (type === 'category') {
-      // For category type, use PetType enum values (cat/dog)
-      videoCategory = { __kind__: 'petType', petType: selectedItem as PetType };
+      // For category type, convert string to PetType
+      videoCategory = { __kind__: 'petType', petType: stringToPetType(selectedItem) };
     } else if (type === 'health') {
       videoCategory = { __kind__: 'healthTopic', healthTopic: selectedItem };
     }
@@ -44,15 +47,19 @@ export default function AdminVideoLinksManager({
 
   const getSelectOptions = () => {
     if (type === 'breed') {
+      if (breeds.length === 0) {
+        return [];
+      }
       return breeds.map((breed) => ({
         value: breed.name,
         label: `${breed.name} (${breed.category})`,
       }));
     } else if (type === 'category') {
-      // Use PetType enum values
+      // Use PetType string values
       return [
         { value: 'cat', label: 'Cats' },
         { value: 'dog', label: 'Dogs' },
+        { value: 'bird', label: 'Birds' },
       ];
     } else {
       // Health topics - provide common ones
@@ -70,6 +77,25 @@ export default function AdminVideoLinksManager({
   const options = getSelectOptions();
   const displayedVideos = selectedItem && videoCategory ? videos : [];
 
+  // Show empty state for breeds when no breeds exist
+  if (type === 'breed' && breeds.length === 0) {
+    return (
+      <div className="text-center py-12 border-2 border-dashed rounded-lg bg-admin-card">
+        <AlertCircle className="h-12 w-12 text-amber-600 mx-auto mb-4" />
+        <p className="text-lg font-medium mb-2">No Breeds Available</p>
+        <p className="text-admin-muted mb-6">
+          You need to create at least one breed before adding breed videos.
+        </p>
+        <Button
+          onClick={() => navigate({ to: '/admin/breeds' })}
+          className="gap-2 bg-admin-accent hover:bg-admin-accent/90 text-white"
+        >
+          Go to Breeds
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="max-w-md">
@@ -82,12 +108,16 @@ export default function AdminVideoLinksManager({
               placeholder={`Select a ${type === 'breed' ? 'breed' : type === 'category' ? 'pet type' : 'health topic'}`}
             />
           </SelectTrigger>
-          <SelectContent>
-            {options.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
+          <SelectContent className="z-[60]">
+            {options.length === 0 ? (
+              <div className="p-2 text-sm text-muted-foreground">No options available</div>
+            ) : (
+              options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))
+            )}
           </SelectContent>
         </Select>
       </div>

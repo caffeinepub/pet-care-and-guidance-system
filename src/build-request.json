@@ -1,97 +1,248 @@
 {
   "kind": "build_request",
-  "title": "Build a full working admin dashboard panel (routes, access control, and CRUD)",
-  "projectName": "PetGuide Admin",
+  "title": "Complete Pet Care and Guidance System: restore full content catalog, expand pet types, improve AI assistant, and enforce admin/user RBAC",
+  "projectName": "Pet Care System",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Make the Admin Dashboard discoverable and accessible: ensure there is a visible navigation entry to the admin dashboard for administrators and that the admin dashboard is reachable at the /admin route (with sub-routes /admin/categories, /admin/breeds, /admin/videos).",
+      "text": "Fix the \"no breed or category available\" issue by ensuring Pets and Breeds always render a complete, working catalog: (1) when backend returns empty lists, frontend must reliably fall back to the existing static catalogs; (2) when backend has data, frontend must correctly map backend categories/breeds to routes so Cat/Dog/Bird/Other Pets and their pages remain reachable.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-4"
         ],
         "quotes": [
-          "please build a full working admin dashboard panel"
+          "all the other categories are not available now in current version it says no breed or category available please make a fully working system do not touch the already available things just add the new things in it"
         ]
       },
       "acceptanceCriteria": [
-        "When a signed-in admin visits the app, the top navigation displays an “Admin” link.",
-        "Clicking “Admin” navigates to /admin and renders the Admin Dashboard landing page without errors.",
-        "Non-admin users do not see the “Admin” navigation link.",
-        "Directly visiting /admin (and sub-routes) as a non-admin shows an “Access Denied” screen (not a blank page)."
+        "Opening /pets shows Cats, Dogs, Birds, and Other Pets even when the backend contains zero categories.",
+        "Opening /pets/cat, /pets/dog, /pets/bird, and /pets/other loads content without showing empty-state messaging like \"no breed or category available\".",
+        "Breed list and breed detail pages render from backend data when present, otherwise render from the static catalogs without errors.",
+        "No existing working routes/pages regress (Home, Auth, Dashboard, Profile, Health, AI Assistant, Admin)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Implement a reliable admin authorization flow so at least one administrator can successfully pass the frontend admin check (actor.isCallerAdmin) after deployment and can use the admin dashboard end-to-end.",
-      "target": "backend",
+      "text": "Implement the full hierarchical Pets module structure requested by the user, including Other Pets subcategories: Small Mammals (Rabbit, Hamster, Guinea Pig, Gerbil, Mouse, Rat, Ferret, Chinchilla, Hedgehog), Aquatic Pets (Goldfish, Betta Fish, Guppy, Angelfish, Tetra, Koi Fish, Mollies & Platies, Shrimp, Snails), Reptiles (Turtle or Tortoise, Lizard types, Snake types, Chameleon, Skink), Amphibians (Frog, Toad, Salamander, Newt), Other Birds (Canary, Finch, Pigeon, Dove, Lovebird, Budgerigar, Quail), Insects and Arthropods (Ant farms, Stick insects, Praying mantis, Tarantula, Scorpion), Exotic Pets (Sugar Glider, Mini Pig, Raccoon, Fox, Skunk where legal), and Farm-Style Pets (Chicken, Duck, Goose, Miniature Goat). Each entry must have: name, clear description, care information, an image (or a safe placeholder), and related YouTube video links with proper titles.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "please build a full working admin dashboard panel"
+          "The website should follow a clear hierarchical structure where users navigate from general categories to detailed pages, including a Pets section with categories such as Cat, Dog, Bird, and Other Pets. The Other Pets category must be organized into Small Mammals ... Farm-Style Pets ... Each pet and breed page should contain the pet or breed name, clear description, care information, images, and related YouTube video links with proper titles."
         ]
       },
       "acceptanceCriteria": [
-        "The backend exposes a working isCallerAdmin method used by the frontend role check.",
-        "There is a secure, documented bootstrap mechanism so at least one principal can be an admin in a fresh deployment (without requiring code edits post-deploy).",
-        "Calls to admin-only backend methods (category/breed/video CRUD) succeed for admin callers and trap with an authorization error for non-admin callers."
+        "/pets/other shows the required subcategory groups and allows navigating into each group to view the listed pets.",
+        "Each listed pet detail page shows: name, description, care bullets, an image (or placeholder), and at least one YouTube link with a non-empty title.",
+        "Navigation follows a clear hierarchy (Landing → Category → Subcategory (when applicable) → Pet detail)."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Deliver a complete Admin Dashboard experience with working CRUD for pet categories, breeds, and admin-managed video links, including image upload support, using the existing admin pages and hooks.",
-      "target": "both",
+      "text": "Expand the Cat, Dog, and Parrot sections to include detailed breed pages for common breeds. Each breed page must display: breed description, temperament, diet, care tips, common health issues, images, and embedded recommended YouTube videos on the same page.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "please build a full working admin dashboard panel"
+          "The Cat, Dog, and Parrot sections must include detailed breed pages for common breeds, each containing breed description, temperament, diet, care tips, common health issues, images, and recommended YouTube videos embedded on the same page."
         ]
       },
       "acceptanceCriteria": [
-        "Admins can create, edit, and delete Pet Categories from /admin/categories and the list refreshes after each mutation.",
-        "Admins can create, edit, and delete Breeds from /admin/breeds (including selecting a category) and the list refreshes after each mutation.",
-        "Admins can create, edit, and delete Video Links from /admin/videos for: Breed videos, Category videos, and Health-topic videos, and changes are reflected immediately in the admin lists.",
-        "Image uploaders in admin forms successfully store and render uploaded images (preview and saved state) using the existing blob storage integration.",
-        "All admin pages provide clear success/error feedback (e.g., toast messages) for create/update/delete actions."
+        "Cats and Dogs have multiple working breed detail pages reachable from their breed list pages.",
+        "Birds includes a Parrot breed set with multiple working breed detail pages (e.g., common parrot breeds) reachable from the Birds breed list.",
+        "Each breed detail page embeds YouTube videos (not just links) and shows the required sections (temperament, diet, care tips, common health issues)."
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Apply a cohesive, distinct visual theme for the admin dashboard pages (layout, typography, spacing, and component styling) that is consistent across /admin, /admin/categories, /admin/breeds, and /admin/videos.",
+      "text": "Ensure the Health & Care module contains detailed sections for grooming, nutrition, vaccination guidance, and emergency care, with health topic pages that explain symptoms, causes, prevention, and immediate care steps, and includes relevant titled YouTube video guides.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "please build a full working admin dashboard panel"
+          "The Health & Care module should provide detailed information on grooming, nutrition, vaccination guidance, emergency care, and health topic pages explaining symptoms, causes, prevention, and immediate care steps, supported with relevant YouTube video guides."
         ]
       },
       "acceptanceCriteria": [
-        "Admin pages share a consistent visual style (headers, cards, forms, tables/lists, and spacing).",
-        "The theme avoids a default-looking appearance and does not rely on blue/purple as the primary palette.",
-        "The admin section looks clearly separated from the user-facing pages while remaining part of the same product design system."
+        "/health shows the key modules (grooming, nutrition, vaccination guidance, emergency care) and navigates to category and topic pages.",
+        "Each health topic page displays symptoms, causes, prevention, immediate care steps, and shows at least one YouTube guide with a proper title.",
+        "Emergency topics are visually labeled as urgent/emergency and include a clear safety notice to contact a veterinarian when appropriate."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Make the AI Assistant page a single, centralized experience accessible from both Home and Dashboard that provides three fully working AI options: (1) Behavioral and Health Prediction, (2) Emergency Care Assistance, and (3) Breed Identification using Image Upload. The assistant must be interactive and logical, asking follow-up questions for symptom reports and providing higher-risk vs lower-risk guidance, and must clearly state it does not replace a professional veterinarian.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "The website must feature a single, centralized AI Assistant page, accessible from both the home page and dashboard, which provides three fully working AI options: Behavioral and Health Prediction, Emergency Care Assistance, and Breed Identification using Image Upload. The AI Assistant must work interactively and logically ... clearly stating that it does not replace a professional veterinarian."
+        ]
+      },
+      "acceptanceCriteria": [
+        "AI Assistant is reachable via /ai-assistant from the global navbar and via prominent links/buttons on Home and Dashboard.",
+        "Emergency Care Assistance supports an interactive flow that asks follow-up questions after the user indicates a symptom such as vomiting and adjusts urgency based on answers (e.g., frequent vomiting triggers clear “seek veterinary care immediately” messaging).",
+        "Behavioral and Health Prediction produces a structured assessment including severity/concern level and recommendations.",
+        "Breed Identification accepts an uploaded image, returns predicted breed information with an explanation and guidance, and handles non-matching images gracefully with an “uncertain” result and next steps.",
+        "All AI outputs include a visible disclaimer that the tool is educational and not a substitute for a veterinarian."
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Update backend pet profile support to match the app scope (cats, dogs, birds, and other pets) by expanding the backend PetType beyond only cat/dog, and ensure all profile, pet management, vaccination, dashboard, and admin video/category logic continues working with the expanded pet types.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "The website should target pet owners of cats, dogs, birds, and other pets ... A user profile section should allow ... managing pets ... entering vaccination dates ..."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend supports storing user pets with pet types that include at least: cat, dog, bird, other.",
+        "Existing stored pets (cat/dog) remain readable after upgrade.",
+        "All existing pet-related endpoints continue to function without trapping due to unknown PetType variants."
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Implement role-based access control (Admin vs User) using secure backend role checks and protected routes. Admins must be redirected to an Admin Dashboard after login and can manage global content (categories, breeds, images, video links, health content) and user accounts (add/remove/disable). Regular users can only view content, use AI Assistant, and edit their own profile/pets/vaccinations/favorites; they must not be able to mutate global site data.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "The website must support role-based access control with two clearly differentiated user roles: Admin and User ... includes three admin accounts ... admins should be redirected to an Admin Dashboard ... allowed to manage the entire website content ... managing health content, and adding, removing, or disabling user accounts ... Regular users ... should not have permission to change any global website data."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin-only backend methods (add/update/remove categories/breeds/videos and any user-management actions) trap or reject for non-admin callers.",
+        "Admin routes/pages are protected so non-admin users see an access denied state and cannot reach admin tools by URL entry.",
+        "After login, admins are routed to the Admin dashboard; regular users are routed to the user dashboard (or last intended non-admin page).",
+        "Admin features/controls are conditionally rendered so regular users do not see admin actions in the UI.",
+        "System has a defined mechanism to provision exactly three initial admin accounts (e.g., controller-only bootstrap or fixed principal allowlist) without granting admin to arbitrary users."
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "Add admin tooling to manage Health & Care content (create/edit/delete health categories/topics and their videos) in a way consistent with existing admin content management patterns, while keeping Health browsing available to all users.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "...admins should be allowed to manage the entire website content ... managing health content..."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin can create/update/delete health categories/topics and manage their titled video links.",
+        "Health pages reflect admin-managed updates after refresh without requiring code changes.",
+        "Non-admin users can browse Health & Care content but cannot change it."
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "text": "Add admin functionality to add, remove, or disable user accounts, and enforce disabled accounts so they cannot access authenticated features (dashboard/profile/favorites/pet management).",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "...adding, removing, or disabling user accounts if they are inactive or misusing the platform."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin can list user accounts and mark an account as disabled/enabled.",
+        "Disabled users cannot call user-only backend methods and are shown a clear UI message indicating the account is disabled.",
+        "Admin can re-enable a previously disabled user."
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "text": "Ensure smart vaccination reminders support daily/weekly/monthly-style messaging (e.g., “Vaccination is due this month”, “Vaccination is tomorrow”) in the dashboard, based on each vaccination due date, and reminders update correctly over time.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "...smart vaccination reminders such as daily, weekly, and monthly alerts (for example: “Vaccination is due this month” or “Vaccination is tomorrow”)..."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Dashboard shows reminder messages for upcoming vaccinations with at least: due today, due tomorrow, due this week, due this month, and overdue states.",
+        "Reminders exclude vaccinations marked completed.",
+        "Reminder output is consistent across refreshes and for multiple pets/vaccinations."
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "text": "Implement a coherent modern, professional, friendly visual theme suitable for an academic Final Year Project and enforce it consistently across the entire app (home, pets, breeds, health, AI assistant, profile, dashboards, and admin), prioritizing readability, usability, and clear safety/disclaimer presentation.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Design a modern, responsive, and user-friendly web application ... maintain a clean, professional, and friendly visual design suitable for an academic Final Year Project, emphasize usability, safety, and explainability of AI behavior..."
+        ]
+      },
+      "acceptanceCriteria": [
+        "UI is responsive across mobile/tablet/desktop for main navigation and primary pages.",
+        "Safety disclaimers and emergency guidance are visually prominent (but not intrusive) and readable.",
+        "Typography, spacing, and card/layout styling are consistent across modules and admin vs user areas."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo; create backend/migration.mo only if a state upgrade is required.",
-    "Do not edit frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or anything under frontend/src/components/ui; compose existing UI components instead.",
-    "Use Internet Identity for authentication; no third-party auth providers."
+    "Do not edit files listed as immutable in SYSTEM_CONTEXT (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, and frontend/src/components/ui).",
+    "Backend must remain a single Motoko actor in backend/main.mo; only add backend/migration.mo changes if state/type migration is required.",
+    "Use English for all user-facing text.",
+    "Do not remove or break already working functionality; only add missing/new functionality and fix the missing categories/breeds availability issue."
   ],
   "nonGoals": [
-    "Implementing non-Internet-Identity authentication (email/password, OAuth, Auth0, etc.).",
-    "Adding real-time collaboration, WebSockets, chat, push notifications, or email/SMS workflows.",
-    "Introducing external databases or additional backend services beyond the single canister actor."
+    "Do not integrate external AI/LLM services (no OpenAI/Anthropic/etc.); AI behaviors must be implemented locally (rules/flows) within the app.",
+    "Do not add third-party authentication beyond Internet Identity; do not implement email-based forgot-password flows.",
+    "Do not add external databases or non-Internet Computer backend services."
   ],
   "imageRequirements": {
-    "required": [],
+    "required": [
+      "Friendly modern hero illustration with cats, dogs, birds, and small pets in a clean academic style (home-hero-illustration.dim_1600x800.png)",
+      "Simple flat logo mark featuring a heart/paw motif, clean lines, minimal color palette (app-logo.dim_512x512.png)",
+      "Four consistent category banner illustrations: cat, dog, bird, other pets; same style and layout (category-banners.dim_1600x400.png)",
+      "Neutral placeholder image for pets/breeds when no image is available, soft gradient background (placeholder-pet.dim_1200x800.png)"
+    ],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [
+      "Deliver a fully working Pet Care and Guidance System with complete pets/breeds/health catalogs, interactive AI assistant, vaccination reminders, and admin-managed content with RBAC."
+    ],
+    "goalsToRemove": [],
+    "preferencesToAdd": [
+      "All user-facing text must be English.",
+      "Preserve existing working features; only add missing/new functionality."
+    ],
+    "preferencesToRemove": [],
+    "miscToAdd": [
+      "Known issue to address: categories/breeds sometimes show as unavailable; ensure robust fallback and/or seeded content."
+    ],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

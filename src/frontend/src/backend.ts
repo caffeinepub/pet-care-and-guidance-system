@@ -104,8 +104,28 @@ export interface PetCategory {
     videos: Array<YoutubeVideo>;
 }
 export type Timestamp = bigint;
+export type PetType = {
+    __kind__: "cat";
+    cat: null;
+} | {
+    __kind__: "dog";
+    dog: null;
+} | {
+    __kind__: "other";
+    other: string;
+} | {
+    __kind__: "bird";
+    bird: null;
+};
 export interface _CaffeineStorageRefillInformation {
     proposed_top_up_amount?: bigint;
+}
+export interface HealthContent {
+    title: string;
+    description: string;
+    petType: PetType;
+    category: string;
+    videos: Array<YoutubeVideo>;
 }
 export interface Favorite {
     name: string;
@@ -177,10 +197,6 @@ export interface _CaffeineStorageRefillResult {
     success?: boolean;
     topped_up_amount?: bigint;
 }
-export enum PetType {
-    cat = "cat",
-    dog = "dog"
-}
 export enum UserRole {
     admin = "admin",
     user = "user",
@@ -201,18 +217,24 @@ export interface backendInterface {
     addAdminVideoLink(video: VideoLink): Promise<VideoId>;
     addBreed(breed: Breed): Promise<void>;
     addFavorite(videoId: VideoId, name: string): Promise<void>;
+    addHealthContent(content: HealthContent): Promise<void>;
     addPet(pet: Pet): Promise<PetId>;
     addPetCategory(category: PetCategory): Promise<void>;
     addVaccination(petId: PetId, name: string, dueDate: Timestamp, reminderFrequency: VaccinationFrequency): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    disableUser(user: Principal): Promise<void>;
+    enableUser(user: Principal, profile: UserProfile): Promise<void>;
     getAllAdminVideoLinks(): Promise<Array<VideoLink>>;
     getAllBreeds(): Promise<Array<Breed>>;
     getAllFavoriteVideos(): Promise<Array<Favorite>>;
+    getAllHealthContent(): Promise<Array<HealthContent>>;
     getAllPetCategories(): Promise<Array<PetCategory>>;
     getBreedsByCategory(category: string): Promise<Array<Breed>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getDashboardInfo(): Promise<UserProfile>;
+    getHealthContentByCategory(category: string): Promise<Array<HealthContent>>;
+    getHealthContentByPetType(petType: PetType): Promise<Array<HealthContent>>;
     getPet(petId: PetId): Promise<Pet>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     getVaccinationReminders(): Promise<Array<[string, Array<Vaccination>]>>;
@@ -222,16 +244,18 @@ export interface backendInterface {
     removeAdminVideoLink(videoId: VideoId): Promise<void>;
     removeBreed(name: string): Promise<void>;
     removeFavorite(videoId: VideoId): Promise<void>;
+    removeHealthContent(title: string): Promise<void>;
     removePet(petId: PetId): Promise<void>;
     removePetCategory(name: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     submitOnboardingPet(pet: Pet): Promise<PetId>;
     updateAdminVideoLink(videoId: VideoId, updatedVideo: VideoLink): Promise<void>;
     updateBreed(name: string, updatedBreed: Breed): Promise<void>;
+    updateHealthContent(title: string, updatedContent: HealthContent): Promise<void>;
     updatePet(petId: PetId, updatedPet: Pet): Promise<void>;
     updatePetCategory(name: string, updatedCategory: PetCategory): Promise<void>;
 }
-import type { Breed as _Breed, ExternalBlob as _ExternalBlob, Favorite as _Favorite, Gender as _Gender, Pet as _Pet, PetCategory as _PetCategory, PetId as _PetId, PetType as _PetType, Timestamp as _Timestamp, UserProfile as _UserProfile, UserRole as _UserRole, Vaccination as _Vaccination, VaccinationFrequency as _VaccinationFrequency, VideoCategory as _VideoCategory, VideoId as _VideoId, VideoLink as _VideoLink, YoutubeVideo as _YoutubeVideo, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
+import type { Breed as _Breed, ExternalBlob as _ExternalBlob, Favorite as _Favorite, Gender as _Gender, HealthContent as _HealthContent, Pet as _Pet, PetCategory as _PetCategory, PetId as _PetId, PetType as _PetType, Timestamp as _Timestamp, UserProfile as _UserProfile, UserRole as _UserRole, Vaccination as _Vaccination, VaccinationFrequency as _VaccinationFrequency, VideoCategory as _VideoCategory, VideoId as _VideoId, VideoLink as _VideoLink, YoutubeVideo as _YoutubeVideo, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _caffeineStorageBlobIsLive(arg0: Uint8Array): Promise<boolean> {
@@ -374,59 +398,101 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async addPet(arg0: Pet): Promise<PetId> {
+    async addHealthContent(arg0: HealthContent): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.addPet(await to_candid_Pet_n17(this._uploadFile, this._downloadFile, arg0));
+                const result = await this.actor.addHealthContent(to_candid_HealthContent_n17(this._uploadFile, this._downloadFile, arg0));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.addPet(await to_candid_Pet_n17(this._uploadFile, this._downloadFile, arg0));
+            const result = await this.actor.addHealthContent(to_candid_HealthContent_n17(this._uploadFile, this._downloadFile, arg0));
+            return result;
+        }
+    }
+    async addPet(arg0: Pet): Promise<PetId> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.addPet(await to_candid_Pet_n19(this._uploadFile, this._downloadFile, arg0));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.addPet(await to_candid_Pet_n19(this._uploadFile, this._downloadFile, arg0));
             return result;
         }
     }
     async addPetCategory(arg0: PetCategory): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.addPetCategory(await to_candid_PetCategory_n26(this._uploadFile, this._downloadFile, arg0));
+                const result = await this.actor.addPetCategory(await to_candid_PetCategory_n28(this._uploadFile, this._downloadFile, arg0));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.addPetCategory(await to_candid_PetCategory_n26(this._uploadFile, this._downloadFile, arg0));
+            const result = await this.actor.addPetCategory(await to_candid_PetCategory_n28(this._uploadFile, this._downloadFile, arg0));
             return result;
         }
     }
     async addVaccination(arg0: PetId, arg1: string, arg2: Timestamp, arg3: VaccinationFrequency): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.addVaccination(arg0, arg1, arg2, to_candid_VaccinationFrequency_n22(this._uploadFile, this._downloadFile, arg3));
+                const result = await this.actor.addVaccination(arg0, arg1, arg2, to_candid_VaccinationFrequency_n24(this._uploadFile, this._downloadFile, arg3));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.addVaccination(arg0, arg1, arg2, to_candid_VaccinationFrequency_n22(this._uploadFile, this._downloadFile, arg3));
+            const result = await this.actor.addVaccination(arg0, arg1, arg2, to_candid_VaccinationFrequency_n24(this._uploadFile, this._downloadFile, arg3));
             return result;
         }
     }
     async assignCallerUserRole(arg0: Principal, arg1: UserRole): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n28(this._uploadFile, this._downloadFile, arg1));
+                const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n30(this._uploadFile, this._downloadFile, arg1));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n28(this._uploadFile, this._downloadFile, arg1));
+            const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n30(this._uploadFile, this._downloadFile, arg1));
+            return result;
+        }
+    }
+    async disableUser(arg0: Principal): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.disableUser(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.disableUser(arg0);
+            return result;
+        }
+    }
+    async enableUser(arg0: Principal, arg1: UserProfile): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.enableUser(arg0, await to_candid_UserProfile_n32(this._uploadFile, this._downloadFile, arg1));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.enableUser(arg0, await to_candid_UserProfile_n32(this._uploadFile, this._downloadFile, arg1));
             return result;
         }
     }
@@ -434,28 +500,28 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getAllAdminVideoLinks();
-                return from_candid_vec_n30(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n35(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getAllAdminVideoLinks();
-            return from_candid_vec_n30(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n35(this._uploadFile, this._downloadFile, result);
         }
     }
     async getAllBreeds(): Promise<Array<Breed>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getAllBreeds();
-                return from_candid_vec_n37(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n42(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getAllBreeds();
-            return from_candid_vec_n37(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n42(this._uploadFile, this._downloadFile, result);
         }
     }
     async getAllFavoriteVideos(): Promise<Array<Favorite>> {
@@ -472,130 +538,172 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getAllHealthContent(): Promise<Array<HealthContent>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllHealthContent();
+                return from_candid_vec_n47(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllHealthContent();
+            return from_candid_vec_n47(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async getAllPetCategories(): Promise<Array<PetCategory>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getAllPetCategories();
-                return from_candid_vec_n42(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n50(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getAllPetCategories();
-            return from_candid_vec_n42(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n50(this._uploadFile, this._downloadFile, result);
         }
     }
     async getBreedsByCategory(arg0: string): Promise<Array<Breed>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getBreedsByCategory(arg0);
-                return from_candid_vec_n37(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n42(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getBreedsByCategory(arg0);
-            return from_candid_vec_n37(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n42(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCallerUserProfile(): Promise<UserProfile | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserProfile();
-                return from_candid_opt_n45(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n53(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserProfile();
-            return from_candid_opt_n45(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n53(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCallerUserRole(): Promise<UserRole> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserRole();
-                return from_candid_UserRole_n60(this._uploadFile, this._downloadFile, result);
+                return from_candid_UserRole_n68(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserRole();
-            return from_candid_UserRole_n60(this._uploadFile, this._downloadFile, result);
+            return from_candid_UserRole_n68(this._uploadFile, this._downloadFile, result);
         }
     }
     async getDashboardInfo(): Promise<UserProfile> {
         if (this.processError) {
             try {
                 const result = await this.actor.getDashboardInfo();
-                return from_candid_UserProfile_n46(this._uploadFile, this._downloadFile, result);
+                return from_candid_UserProfile_n54(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getDashboardInfo();
-            return from_candid_UserProfile_n46(this._uploadFile, this._downloadFile, result);
+            return from_candid_UserProfile_n54(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getHealthContentByCategory(arg0: string): Promise<Array<HealthContent>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getHealthContentByCategory(arg0);
+                return from_candid_vec_n47(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getHealthContentByCategory(arg0);
+            return from_candid_vec_n47(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getHealthContentByPetType(arg0: PetType): Promise<Array<HealthContent>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getHealthContentByPetType(to_candid_PetType_n12(this._uploadFile, this._downloadFile, arg0));
+                return from_candid_vec_n47(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getHealthContentByPetType(to_candid_PetType_n12(this._uploadFile, this._downloadFile, arg0));
+            return from_candid_vec_n47(this._uploadFile, this._downloadFile, result);
         }
     }
     async getPet(arg0: PetId): Promise<Pet> {
         if (this.processError) {
             try {
                 const result = await this.actor.getPet(arg0);
-                return from_candid_Pet_n49(this._uploadFile, this._downloadFile, result);
+                return from_candid_Pet_n57(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getPet(arg0);
-            return from_candid_Pet_n49(this._uploadFile, this._downloadFile, result);
+            return from_candid_Pet_n57(this._uploadFile, this._downloadFile, result);
         }
     }
     async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getUserProfile(arg0);
-                return from_candid_opt_n45(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n53(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getUserProfile(arg0);
-            return from_candid_opt_n45(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n53(this._uploadFile, this._downloadFile, result);
         }
     }
     async getVaccinationReminders(): Promise<Array<[string, Array<Vaccination>]>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getVaccinationReminders();
-                return from_candid_vec_n62(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n70(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getVaccinationReminders();
-            return from_candid_vec_n62(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n70(this._uploadFile, this._downloadFile, result);
         }
     }
     async getVideosByCategory(arg0: VideoCategory): Promise<Array<VideoLink>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getVideosByCategory(to_candid_VideoCategory_n10(this._uploadFile, this._downloadFile, arg0));
-                return from_candid_vec_n30(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n35(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getVideosByCategory(to_candid_VideoCategory_n10(this._uploadFile, this._downloadFile, arg0));
-            return from_candid_vec_n30(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n35(this._uploadFile, this._downloadFile, result);
         }
     }
     async isCallerAdmin(): Promise<boolean> {
@@ -668,6 +776,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async removeHealthContent(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.removeHealthContent(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.removeHealthContent(arg0);
+            return result;
+        }
+    }
     async removePet(arg0: PetId): Promise<void> {
         if (this.processError) {
             try {
@@ -699,28 +821,28 @@ export class Backend implements backendInterface {
     async saveCallerUserProfile(arg0: UserProfile): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.saveCallerUserProfile(await to_candid_UserProfile_n64(this._uploadFile, this._downloadFile, arg0));
+                const result = await this.actor.saveCallerUserProfile(await to_candid_UserProfile_n32(this._uploadFile, this._downloadFile, arg0));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.saveCallerUserProfile(await to_candid_UserProfile_n64(this._uploadFile, this._downloadFile, arg0));
+            const result = await this.actor.saveCallerUserProfile(await to_candid_UserProfile_n32(this._uploadFile, this._downloadFile, arg0));
             return result;
         }
     }
     async submitOnboardingPet(arg0: Pet): Promise<PetId> {
         if (this.processError) {
             try {
-                const result = await this.actor.submitOnboardingPet(await to_candid_Pet_n17(this._uploadFile, this._downloadFile, arg0));
+                const result = await this.actor.submitOnboardingPet(await to_candid_Pet_n19(this._uploadFile, this._downloadFile, arg0));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.submitOnboardingPet(await to_candid_Pet_n17(this._uploadFile, this._downloadFile, arg0));
+            const result = await this.actor.submitOnboardingPet(await to_candid_Pet_n19(this._uploadFile, this._downloadFile, arg0));
             return result;
         }
     }
@@ -752,93 +874,110 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async updatePet(arg0: PetId, arg1: Pet): Promise<void> {
+    async updateHealthContent(arg0: string, arg1: HealthContent): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.updatePet(arg0, await to_candid_Pet_n17(this._uploadFile, this._downloadFile, arg1));
+                const result = await this.actor.updateHealthContent(arg0, to_candid_HealthContent_n17(this._uploadFile, this._downloadFile, arg1));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updatePet(arg0, await to_candid_Pet_n17(this._uploadFile, this._downloadFile, arg1));
+            const result = await this.actor.updateHealthContent(arg0, to_candid_HealthContent_n17(this._uploadFile, this._downloadFile, arg1));
+            return result;
+        }
+    }
+    async updatePet(arg0: PetId, arg1: Pet): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updatePet(arg0, await to_candid_Pet_n19(this._uploadFile, this._downloadFile, arg1));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updatePet(arg0, await to_candid_Pet_n19(this._uploadFile, this._downloadFile, arg1));
             return result;
         }
     }
     async updatePetCategory(arg0: string, arg1: PetCategory): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.updatePetCategory(arg0, await to_candid_PetCategory_n26(this._uploadFile, this._downloadFile, arg1));
+                const result = await this.actor.updatePetCategory(arg0, await to_candid_PetCategory_n28(this._uploadFile, this._downloadFile, arg1));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updatePetCategory(arg0, await to_candid_PetCategory_n26(this._uploadFile, this._downloadFile, arg1));
+            const result = await this.actor.updatePetCategory(arg0, await to_candid_PetCategory_n28(this._uploadFile, this._downloadFile, arg1));
             return result;
         }
     }
 }
-async function from_candid_Breed_n38(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Breed): Promise<Breed> {
-    return await from_candid_record_n39(_uploadFile, _downloadFile, value);
-}
-async function from_candid_ExternalBlob_n41(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ExternalBlob): Promise<ExternalBlob> {
-    return await _downloadFile(value);
-}
-function from_candid_Gender_n57(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Gender): Gender {
-    return from_candid_variant_n58(_uploadFile, _downloadFile, value);
-}
-async function from_candid_PetCategory_n43(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _PetCategory): Promise<PetCategory> {
+async function from_candid_Breed_n43(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Breed): Promise<Breed> {
     return await from_candid_record_n44(_uploadFile, _downloadFile, value);
 }
-function from_candid_PetType_n35(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _PetType): PetType {
-    return from_candid_variant_n36(_uploadFile, _downloadFile, value);
+async function from_candid_ExternalBlob_n46(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ExternalBlob): Promise<ExternalBlob> {
+    return await _downloadFile(value);
 }
-async function from_candid_Pet_n49(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Pet): Promise<Pet> {
-    return await from_candid_record_n50(_uploadFile, _downloadFile, value);
+function from_candid_Gender_n65(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Gender): Gender {
+    return from_candid_variant_n66(_uploadFile, _downloadFile, value);
 }
-async function from_candid_UserProfile_n46(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserProfile): Promise<UserProfile> {
-    return await from_candid_record_n47(_uploadFile, _downloadFile, value);
+function from_candid_HealthContent_n48(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _HealthContent): HealthContent {
+    return from_candid_record_n49(_uploadFile, _downloadFile, value);
 }
-function from_candid_UserRole_n60(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
-    return from_candid_variant_n61(_uploadFile, _downloadFile, value);
+async function from_candid_PetCategory_n51(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _PetCategory): Promise<PetCategory> {
+    return await from_candid_record_n52(_uploadFile, _downloadFile, value);
 }
-function from_candid_VaccinationFrequency_n54(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _VaccinationFrequency): VaccinationFrequency {
-    return from_candid_variant_n55(_uploadFile, _downloadFile, value);
+function from_candid_PetType_n40(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _PetType): PetType {
+    return from_candid_variant_n41(_uploadFile, _downloadFile, value);
 }
-function from_candid_Vaccination_n52(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Vaccination): Vaccination {
-    return from_candid_record_n53(_uploadFile, _downloadFile, value);
+async function from_candid_Pet_n57(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Pet): Promise<Pet> {
+    return await from_candid_record_n58(_uploadFile, _downloadFile, value);
 }
-function from_candid_VideoCategory_n33(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _VideoCategory): VideoCategory {
-    return from_candid_variant_n34(_uploadFile, _downloadFile, value);
+async function from_candid_UserProfile_n54(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserProfile): Promise<UserProfile> {
+    return await from_candid_record_n55(_uploadFile, _downloadFile, value);
 }
-function from_candid_VideoLink_n31(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _VideoLink): VideoLink {
-    return from_candid_record_n32(_uploadFile, _downloadFile, value);
+function from_candid_UserRole_n68(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
+    return from_candid_variant_n69(_uploadFile, _downloadFile, value);
+}
+function from_candid_VaccinationFrequency_n62(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _VaccinationFrequency): VaccinationFrequency {
+    return from_candid_variant_n63(_uploadFile, _downloadFile, value);
+}
+function from_candid_Vaccination_n60(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Vaccination): Vaccination {
+    return from_candid_record_n61(_uploadFile, _downloadFile, value);
+}
+function from_candid_VideoCategory_n38(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _VideoCategory): VideoCategory {
+    return from_candid_variant_n39(_uploadFile, _downloadFile, value);
+}
+function from_candid_VideoLink_n36(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _VideoLink): VideoLink {
+    return from_candid_record_n37(_uploadFile, _downloadFile, value);
 }
 function from_candid__CaffeineStorageRefillResult_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: __CaffeineStorageRefillResult): _CaffeineStorageRefillResult {
     return from_candid_record_n5(_uploadFile, _downloadFile, value);
 }
-async function from_candid_opt_n40(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ExternalBlob]): Promise<ExternalBlob | null> {
-    return value.length === 0 ? null : await from_candid_ExternalBlob_n41(_uploadFile, _downloadFile, value[0]);
+async function from_candid_opt_n45(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ExternalBlob]): Promise<ExternalBlob | null> {
+    return value.length === 0 ? null : await from_candid_ExternalBlob_n46(_uploadFile, _downloadFile, value[0]);
 }
-async function from_candid_opt_n45(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): Promise<UserProfile | null> {
-    return value.length === 0 ? null : await from_candid_UserProfile_n46(_uploadFile, _downloadFile, value[0]);
-}
-function from_candid_opt_n56(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Timestamp]): Timestamp | null {
-    return value.length === 0 ? null : value[0];
-}
-function from_candid_opt_n59(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [string]): string | null {
-    return value.length === 0 ? null : value[0];
+async function from_candid_opt_n53(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): Promise<UserProfile | null> {
+    return value.length === 0 ? null : await from_candid_UserProfile_n54(_uploadFile, _downloadFile, value[0]);
 }
 function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [boolean]): boolean | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n64(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Timestamp]): Timestamp | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n67(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [string]): string | null {
     return value.length === 0 ? null : value[0];
 }
 function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [bigint]): bigint | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_record_n32(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n37(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: _VideoId;
     url: string;
     title: string;
@@ -858,11 +997,11 @@ function from_candid_record_n32(_uploadFile: (file: ExternalBlob) => Promise<Uin
         url: value.url,
         title: value.title,
         description: value.description,
-        category: from_candid_VideoCategory_n33(_uploadFile, _downloadFile, value.category),
+        category: from_candid_VideoCategory_n38(_uploadFile, _downloadFile, value.category),
         uploadedBy: value.uploadedBy
     };
 }
-async function from_candid_record_n39(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+async function from_candid_record_n44(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     name: string;
     description: string;
     category: string;
@@ -879,11 +1018,44 @@ async function from_candid_record_n39(_uploadFile: (file: ExternalBlob) => Promi
         name: value.name,
         description: value.description,
         category: value.category,
-        image: record_opt_to_undefined(await from_candid_opt_n40(_uploadFile, _downloadFile, value.image)),
+        image: record_opt_to_undefined(await from_candid_opt_n45(_uploadFile, _downloadFile, value.image)),
         videos: value.videos
     };
 }
-async function from_candid_record_n44(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n49(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    title: string;
+    description: string;
+    petType: _PetType;
+    category: string;
+    videos: Array<_YoutubeVideo>;
+}): {
+    title: string;
+    description: string;
+    petType: PetType;
+    category: string;
+    videos: Array<YoutubeVideo>;
+} {
+    return {
+        title: value.title,
+        description: value.description,
+        petType: from_candid_PetType_n40(_uploadFile, _downloadFile, value.petType),
+        category: value.category,
+        videos: value.videos
+    };
+}
+function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    success: [] | [boolean];
+    topped_up_amount: [] | [bigint];
+}): {
+    success?: boolean;
+    topped_up_amount?: bigint;
+} {
+    return {
+        success: record_opt_to_undefined(from_candid_opt_n6(_uploadFile, _downloadFile, value.success)),
+        topped_up_amount: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.topped_up_amount))
+    };
+}
+async function from_candid_record_n52(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     name: string;
     description: string;
     image: [] | [_ExternalBlob];
@@ -897,11 +1069,11 @@ async function from_candid_record_n44(_uploadFile: (file: ExternalBlob) => Promi
     return {
         name: value.name,
         description: value.description,
-        image: record_opt_to_undefined(await from_candid_opt_n40(_uploadFile, _downloadFile, value.image)),
+        image: record_opt_to_undefined(await from_candid_opt_n45(_uploadFile, _downloadFile, value.image)),
         videos: value.videos
     };
 }
-async function from_candid_record_n47(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+async function from_candid_record_n55(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     favorites: Array<_Favorite>;
     name: string;
     pets: Array<_Pet>;
@@ -917,24 +1089,12 @@ async function from_candid_record_n47(_uploadFile: (file: ExternalBlob) => Promi
     return {
         favorites: value.favorites,
         name: value.name,
-        pets: await from_candid_vec_n48(_uploadFile, _downloadFile, value.pets),
-        profilePhoto: record_opt_to_undefined(await from_candid_opt_n40(_uploadFile, _downloadFile, value.profilePhoto)),
+        pets: await from_candid_vec_n56(_uploadFile, _downloadFile, value.pets),
+        profilePhoto: record_opt_to_undefined(await from_candid_opt_n45(_uploadFile, _downloadFile, value.profilePhoto)),
         email: value.email
     };
 }
-function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    success: [] | [boolean];
-    topped_up_amount: [] | [bigint];
-}): {
-    success?: boolean;
-    topped_up_amount?: bigint;
-} {
-    return {
-        success: record_opt_to_undefined(from_candid_opt_n6(_uploadFile, _downloadFile, value.success)),
-        topped_up_amount: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.topped_up_amount))
-    };
-}
-async function from_candid_record_n50(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+async function from_candid_record_n58(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: _PetId;
     age: bigint;
     weight: [] | [bigint];
@@ -961,16 +1121,16 @@ async function from_candid_record_n50(_uploadFile: (file: ExternalBlob) => Promi
         id: value.id,
         age: value.age,
         weight: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.weight)),
-        vaccinations: from_candid_vec_n51(_uploadFile, _downloadFile, value.vaccinations),
+        vaccinations: from_candid_vec_n59(_uploadFile, _downloadFile, value.vaccinations),
         name: value.name,
-        petType: from_candid_PetType_n35(_uploadFile, _downloadFile, value.petType),
-        lastVaccinatedDate: record_opt_to_undefined(from_candid_opt_n56(_uploadFile, _downloadFile, value.lastVaccinatedDate)),
-        gender: from_candid_Gender_n57(_uploadFile, _downloadFile, value.gender),
-        breed: record_opt_to_undefined(from_candid_opt_n59(_uploadFile, _downloadFile, value.breed)),
-        photo: record_opt_to_undefined(await from_candid_opt_n40(_uploadFile, _downloadFile, value.photo))
+        petType: from_candid_PetType_n40(_uploadFile, _downloadFile, value.petType),
+        lastVaccinatedDate: record_opt_to_undefined(from_candid_opt_n64(_uploadFile, _downloadFile, value.lastVaccinatedDate)),
+        gender: from_candid_Gender_n65(_uploadFile, _downloadFile, value.gender),
+        breed: record_opt_to_undefined(from_candid_opt_n67(_uploadFile, _downloadFile, value.breed)),
+        photo: record_opt_to_undefined(await from_candid_opt_n45(_uploadFile, _downloadFile, value.photo))
     };
 }
-function from_candid_record_n53(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n61(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     name: string;
     completed: boolean;
     dueDate: _Timestamp;
@@ -985,16 +1145,16 @@ function from_candid_record_n53(_uploadFile: (file: ExternalBlob) => Promise<Uin
         name: value.name,
         completed: value.completed,
         dueDate: value.dueDate,
-        reminderFrequency: from_candid_VaccinationFrequency_n54(_uploadFile, _downloadFile, value.reminderFrequency)
+        reminderFrequency: from_candid_VaccinationFrequency_n62(_uploadFile, _downloadFile, value.reminderFrequency)
     };
 }
-function from_candid_tuple_n63(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [string, Array<_Vaccination>]): [string, Array<Vaccination>] {
+function from_candid_tuple_n71(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [string, Array<_Vaccination>]): [string, Array<Vaccination>] {
     return [
         value[0],
-        from_candid_vec_n51(_uploadFile, _downloadFile, value[1])
+        from_candid_vec_n59(_uploadFile, _downloadFile, value[1])
     ];
 }
-function from_candid_variant_n34(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n39(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     healthTopic: string;
 } | {
     petType: _PetType;
@@ -1015,27 +1175,55 @@ function from_candid_variant_n34(_uploadFile: (file: ExternalBlob) => Promise<Ui
         healthTopic: value.healthTopic
     } : "petType" in value ? {
         __kind__: "petType",
-        petType: from_candid_PetType_n35(_uploadFile, _downloadFile, value.petType)
+        petType: from_candid_PetType_n40(_uploadFile, _downloadFile, value.petType)
     } : "breed" in value ? {
         __kind__: "breed",
         breed: value.breed
     } : value;
 }
-function from_candid_variant_n36(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n41(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     cat: null;
 } | {
     dog: null;
-}): PetType {
-    return "cat" in value ? PetType.cat : "dog" in value ? PetType.dog : value;
+} | {
+    other: string;
+} | {
+    bird: null;
+}): {
+    __kind__: "cat";
+    cat: null;
+} | {
+    __kind__: "dog";
+    dog: null;
+} | {
+    __kind__: "other";
+    other: string;
+} | {
+    __kind__: "bird";
+    bird: null;
+} {
+    return "cat" in value ? {
+        __kind__: "cat",
+        cat: value.cat
+    } : "dog" in value ? {
+        __kind__: "dog",
+        dog: value.dog
+    } : "other" in value ? {
+        __kind__: "other",
+        other: value.other
+    } : "bird" in value ? {
+        __kind__: "bird",
+        bird: value.bird
+    } : value;
 }
-function from_candid_variant_n55(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n63(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     everyYear: null;
 } | {
     everyThreeYears: null;
 }): VaccinationFrequency {
     return "everyYear" in value ? VaccinationFrequency.everyYear : "everyThreeYears" in value ? VaccinationFrequency.everyThreeYears : value;
 }
-function from_candid_variant_n58(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n66(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     other: string;
 } | {
     female: null;
@@ -1062,7 +1250,7 @@ function from_candid_variant_n58(_uploadFile: (file: ExternalBlob) => Promise<Ui
         male: value.male
     } : value;
 }
-function from_candid_variant_n61(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n69(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;
 } | {
     user: null;
@@ -1071,23 +1259,26 @@ function from_candid_variant_n61(_uploadFile: (file: ExternalBlob) => Promise<Ui
 }): UserRole {
     return "admin" in value ? UserRole.admin : "user" in value ? UserRole.user : "guest" in value ? UserRole.guest : value;
 }
-function from_candid_vec_n30(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_VideoLink>): Array<VideoLink> {
-    return value.map((x)=>from_candid_VideoLink_n31(_uploadFile, _downloadFile, x));
+function from_candid_vec_n35(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_VideoLink>): Array<VideoLink> {
+    return value.map((x)=>from_candid_VideoLink_n36(_uploadFile, _downloadFile, x));
 }
-async function from_candid_vec_n37(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Breed>): Promise<Array<Breed>> {
-    return await Promise.all(value.map(async (x)=>await from_candid_Breed_n38(_uploadFile, _downloadFile, x)));
+async function from_candid_vec_n42(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Breed>): Promise<Array<Breed>> {
+    return await Promise.all(value.map(async (x)=>await from_candid_Breed_n43(_uploadFile, _downloadFile, x)));
 }
-async function from_candid_vec_n42(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_PetCategory>): Promise<Array<PetCategory>> {
-    return await Promise.all(value.map(async (x)=>await from_candid_PetCategory_n43(_uploadFile, _downloadFile, x)));
+function from_candid_vec_n47(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_HealthContent>): Array<HealthContent> {
+    return value.map((x)=>from_candid_HealthContent_n48(_uploadFile, _downloadFile, x));
 }
-async function from_candid_vec_n48(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Pet>): Promise<Array<Pet>> {
-    return await Promise.all(value.map(async (x)=>await from_candid_Pet_n49(_uploadFile, _downloadFile, x)));
+async function from_candid_vec_n50(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_PetCategory>): Promise<Array<PetCategory>> {
+    return await Promise.all(value.map(async (x)=>await from_candid_PetCategory_n51(_uploadFile, _downloadFile, x)));
 }
-function from_candid_vec_n51(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Vaccination>): Array<Vaccination> {
-    return value.map((x)=>from_candid_Vaccination_n52(_uploadFile, _downloadFile, x));
+async function from_candid_vec_n56(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Pet>): Promise<Array<Pet>> {
+    return await Promise.all(value.map(async (x)=>await from_candid_Pet_n57(_uploadFile, _downloadFile, x)));
 }
-function from_candid_vec_n62(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<[string, Array<_Vaccination>]>): Array<[string, Array<Vaccination>]> {
-    return value.map((x)=>from_candid_tuple_n63(_uploadFile, _downloadFile, x));
+function from_candid_vec_n59(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Vaccination>): Array<Vaccination> {
+    return value.map((x)=>from_candid_Vaccination_n60(_uploadFile, _downloadFile, x));
+}
+function from_candid_vec_n70(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<[string, Array<_Vaccination>]>): Array<[string, Array<Vaccination>]> {
+    return value.map((x)=>from_candid_tuple_n71(_uploadFile, _downloadFile, x));
 }
 async function to_candid_Breed_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Breed): Promise<_Breed> {
     return await to_candid_record_n15(_uploadFile, _downloadFile, value);
@@ -1095,29 +1286,32 @@ async function to_candid_Breed_n14(_uploadFile: (file: ExternalBlob) => Promise<
 async function to_candid_ExternalBlob_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ExternalBlob): Promise<_ExternalBlob> {
     return await _uploadFile(value);
 }
-function to_candid_Gender_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Gender): _Gender {
-    return to_candid_variant_n25(_uploadFile, _downloadFile, value);
+function to_candid_Gender_n26(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Gender): _Gender {
+    return to_candid_variant_n27(_uploadFile, _downloadFile, value);
 }
-async function to_candid_PetCategory_n26(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: PetCategory): Promise<_PetCategory> {
-    return await to_candid_record_n27(_uploadFile, _downloadFile, value);
+function to_candid_HealthContent_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: HealthContent): _HealthContent {
+    return to_candid_record_n18(_uploadFile, _downloadFile, value);
+}
+async function to_candid_PetCategory_n28(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: PetCategory): Promise<_PetCategory> {
+    return await to_candid_record_n29(_uploadFile, _downloadFile, value);
 }
 function to_candid_PetType_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: PetType): _PetType {
     return to_candid_variant_n13(_uploadFile, _downloadFile, value);
 }
-async function to_candid_Pet_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Pet): Promise<_Pet> {
-    return await to_candid_record_n18(_uploadFile, _downloadFile, value);
+async function to_candid_Pet_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Pet): Promise<_Pet> {
+    return await to_candid_record_n20(_uploadFile, _downloadFile, value);
 }
-async function to_candid_UserProfile_n64(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserProfile): Promise<_UserProfile> {
-    return await to_candid_record_n65(_uploadFile, _downloadFile, value);
+async function to_candid_UserProfile_n32(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserProfile): Promise<_UserProfile> {
+    return await to_candid_record_n33(_uploadFile, _downloadFile, value);
 }
-function to_candid_UserRole_n28(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
-    return to_candid_variant_n29(_uploadFile, _downloadFile, value);
+function to_candid_UserRole_n30(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
+    return to_candid_variant_n31(_uploadFile, _downloadFile, value);
 }
-function to_candid_VaccinationFrequency_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: VaccinationFrequency): _VaccinationFrequency {
-    return to_candid_variant_n23(_uploadFile, _downloadFile, value);
+function to_candid_VaccinationFrequency_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: VaccinationFrequency): _VaccinationFrequency {
+    return to_candid_variant_n25(_uploadFile, _downloadFile, value);
 }
-function to_candid_Vaccination_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Vaccination): _Vaccination {
-    return to_candid_record_n21(_uploadFile, _downloadFile, value);
+function to_candid_Vaccination_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Vaccination): _Vaccination {
+    return to_candid_record_n23(_uploadFile, _downloadFile, value);
 }
 function to_candid_VideoCategory_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: VideoCategory): _VideoCategory {
     return to_candid_variant_n11(_uploadFile, _downloadFile, value);
@@ -1152,7 +1346,28 @@ async function to_candid_record_n15(_uploadFile: (file: ExternalBlob) => Promise
         videos: value.videos
     };
 }
-async function to_candid_record_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function to_candid_record_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    title: string;
+    description: string;
+    petType: PetType;
+    category: string;
+    videos: Array<YoutubeVideo>;
+}): {
+    title: string;
+    description: string;
+    petType: _PetType;
+    category: string;
+    videos: Array<_YoutubeVideo>;
+} {
+    return {
+        title: value.title,
+        description: value.description,
+        petType: to_candid_PetType_n12(_uploadFile, _downloadFile, value.petType),
+        category: value.category,
+        videos: value.videos
+    };
+}
+async function to_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: PetId;
     age: bigint;
     weight?: bigint;
@@ -1179,16 +1394,16 @@ async function to_candid_record_n18(_uploadFile: (file: ExternalBlob) => Promise
         id: value.id,
         age: value.age,
         weight: value.weight ? candid_some(value.weight) : candid_none(),
-        vaccinations: to_candid_vec_n19(_uploadFile, _downloadFile, value.vaccinations),
+        vaccinations: to_candid_vec_n21(_uploadFile, _downloadFile, value.vaccinations),
         name: value.name,
         petType: to_candid_PetType_n12(_uploadFile, _downloadFile, value.petType),
         lastVaccinatedDate: value.lastVaccinatedDate ? candid_some(value.lastVaccinatedDate) : candid_none(),
-        gender: to_candid_Gender_n24(_uploadFile, _downloadFile, value.gender),
+        gender: to_candid_Gender_n26(_uploadFile, _downloadFile, value.gender),
         breed: value.breed ? candid_some(value.breed) : candid_none(),
         photo: value.photo ? candid_some(await to_candid_ExternalBlob_n16(_uploadFile, _downloadFile, value.photo)) : candid_none()
     };
 }
-function to_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function to_candid_record_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     name: string;
     completed: boolean;
     dueDate: Timestamp;
@@ -1203,10 +1418,10 @@ function to_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         name: value.name,
         completed: value.completed,
         dueDate: value.dueDate,
-        reminderFrequency: to_candid_VaccinationFrequency_n22(_uploadFile, _downloadFile, value.reminderFrequency)
+        reminderFrequency: to_candid_VaccinationFrequency_n24(_uploadFile, _downloadFile, value.reminderFrequency)
     };
 }
-async function to_candid_record_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+async function to_candid_record_n29(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     name: string;
     description: string;
     image?: ExternalBlob;
@@ -1233,7 +1448,7 @@ function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
         proposed_top_up_amount: value.proposed_top_up_amount ? candid_some(value.proposed_top_up_amount) : candid_none()
     };
 }
-async function to_candid_record_n65(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+async function to_candid_record_n33(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     favorites: Array<Favorite>;
     name: string;
     pets: Array<Pet>;
@@ -1249,7 +1464,7 @@ async function to_candid_record_n65(_uploadFile: (file: ExternalBlob) => Promise
     return {
         favorites: value.favorites,
         name: value.name,
-        pets: await to_candid_vec_n66(_uploadFile, _downloadFile, value.pets),
+        pets: await to_candid_vec_n34(_uploadFile, _downloadFile, value.pets),
         profilePhoto: value.profilePhoto ? candid_some(await to_candid_ExternalBlob_n16(_uploadFile, _downloadFile, value.profilePhoto)) : candid_none(),
         email: value.email
     };
@@ -1302,18 +1517,38 @@ function to_candid_variant_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint
         breed: value.breed
     } : value;
 }
-function to_candid_variant_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: PetType): {
+function to_candid_variant_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    __kind__: "cat";
+    cat: null;
+} | {
+    __kind__: "dog";
+    dog: null;
+} | {
+    __kind__: "other";
+    other: string;
+} | {
+    __kind__: "bird";
+    bird: null;
+}): {
     cat: null;
 } | {
     dog: null;
+} | {
+    other: string;
+} | {
+    bird: null;
 } {
-    return value == PetType.cat ? {
-        cat: null
-    } : value == PetType.dog ? {
-        dog: null
+    return value.__kind__ === "cat" ? {
+        cat: value.cat
+    } : value.__kind__ === "dog" ? {
+        dog: value.dog
+    } : value.__kind__ === "other" ? {
+        other: value.other
+    } : value.__kind__ === "bird" ? {
+        bird: value.bird
     } : value;
 }
-function to_candid_variant_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: VaccinationFrequency): {
+function to_candid_variant_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: VaccinationFrequency): {
     everyYear: null;
 } | {
     everyThreeYears: null;
@@ -1324,7 +1559,7 @@ function to_candid_variant_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint
         everyThreeYears: null
     } : value;
 }
-function to_candid_variant_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function to_candid_variant_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     __kind__: "other";
     other: string;
 } | {
@@ -1348,7 +1583,7 @@ function to_candid_variant_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint
         male: value.male
     } : value;
 }
-function to_candid_variant_n29(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {
+function to_candid_variant_n31(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {
     admin: null;
 } | {
     user: null;
@@ -1363,11 +1598,11 @@ function to_candid_variant_n29(_uploadFile: (file: ExternalBlob) => Promise<Uint
         guest: null
     } : value;
 }
-function to_candid_vec_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<Vaccination>): Array<_Vaccination> {
-    return value.map((x)=>to_candid_Vaccination_n20(_uploadFile, _downloadFile, x));
+function to_candid_vec_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<Vaccination>): Array<_Vaccination> {
+    return value.map((x)=>to_candid_Vaccination_n22(_uploadFile, _downloadFile, x));
 }
-async function to_candid_vec_n66(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<Pet>): Promise<Array<_Pet>> {
-    return await Promise.all(value.map(async (x)=>await to_candid_Pet_n17(_uploadFile, _downloadFile, x)));
+async function to_candid_vec_n34(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<Pet>): Promise<Array<_Pet>> {
+    return await Promise.all(value.map(async (x)=>await to_candid_Pet_n19(_uploadFile, _downloadFile, x)));
 }
 export interface CreateActorOptions {
     agent?: Agent;

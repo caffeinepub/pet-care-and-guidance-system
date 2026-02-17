@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '../ui/button';
 import { Menu, X, Heart, Shield } from 'lucide-react';
 import { useState } from 'react';
+import { clearReturnDestination } from '../../utils/urlParams';
 
 export default function Navbar() {
   const { identity, clear, login, loginStatus } = useInternetIdentity();
@@ -16,13 +17,14 @@ export default function Navbar() {
   const isAuthenticated = !!identity;
   const isLoggingIn = loginStatus === 'logging-in';
 
-  // Only show admin link when we've confirmed the user is an admin
-  const showAdminLink = isAuthenticated && roleFetched && isAdmin;
+  // Only show admin link when we've confirmed the user is an admin (after role check completes)
+  const showAdminLink = isAuthenticated && !roleLoading && roleFetched && isAdmin;
 
   const handleAuth = async () => {
     if (isAuthenticated) {
       await clear();
       queryClient.clear();
+      clearReturnDestination();
       navigate({ to: '/' });
     } else {
       try {

@@ -1,15 +1,15 @@
 import { useState } from 'react';
-import { useSubmitOnboardingPet, useAddVaccination } from '../../hooks/useQueries';
+import { useSubmitOnboardingPet } from '../../hooks/useQueries';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Alert, AlertDescription } from '../ui/alert';
-import { Loader2, Heart } from 'lucide-react';
+import { Loader2, PawPrint } from 'lucide-react';
 import { toast } from 'sonner';
-import type { Pet, Gender } from '../../backend';
-import { PetType, VaccinationFrequency } from '../../backend';
+import type { Pet, Gender, PetType, Vaccination } from '../../backend';
+import { VaccinationFrequency } from '../../backend';
+import { stringToPetType } from '../../utils/petTypeHelpers';
 
 interface DashboardPetOnboardingProps {
   onComplete: () => void;
@@ -17,15 +17,14 @@ interface DashboardPetOnboardingProps {
 
 export default function DashboardPetOnboarding({ onComplete }: DashboardPetOnboardingProps) {
   const submitPet = useSubmitOnboardingPet();
-  const addVaccination = useAddVaccination();
 
   const [petName, setPetName] = useState('');
-  const [petType, setPetType] = useState<PetType>(PetType.dog);
+  const [petType, setPetType] = useState<string>('dog');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState<'male' | 'female' | 'other'>('male');
   const [lastVaccinatedDate, setLastVaccinatedDate] = useState('');
-  const [upcomingVaccinationDate, setUpcomingVaccinationDate] = useState('');
   const [upcomingVaccinationName, setUpcomingVaccinationName] = useState('');
+  const [upcomingVaccinationDate, setUpcomingVaccinationDate] = useState('');
 
   const handleSubmit = async () => {
     if (!petName.trim()) {
@@ -39,8 +38,6 @@ export default function DashboardPetOnboarding({ onComplete }: DashboardPetOnboa
     }
 
     try {
-      const ageNum = parseInt(age) || 0;
-      
       // Prepare gender
       let genderValue: Gender;
       if (gender === 'male') {
@@ -51,129 +48,128 @@ export default function DashboardPetOnboarding({ onComplete }: DashboardPetOnboa
         genderValue = { __kind__: 'other', other: 'Not specified' };
       }
 
+      // Prepare pet type
+      const petTypeValue: PetType = stringToPetType(petType);
+
       // Prepare last vaccinated date
       let lastVaccinatedTimestamp: bigint | undefined;
       if (lastVaccinatedDate) {
         const date = new Date(lastVaccinatedDate);
-        lastVaccinatedTimestamp = BigInt(date.getTime() * 1_000_000); // Convert to nanoseconds
+        lastVaccinatedTimestamp = BigInt(date.getTime() * 1_000_000);
+      }
+
+      // Prepare upcoming vaccination
+      const vaccinations: Vaccination[] = [];
+      if (upcomingVaccinationName && upcomingVaccinationDate) {
+        const vaccinationDate = new Date(upcomingVaccinationDate);
+        vaccinations.push({
+          name: upcomingVaccinationName,
+          dueDate: BigInt(vaccinationDate.getTime() * 1_000_000),
+          reminderFrequency: VaccinationFrequency.everyYear,
+          completed: false,
+        });
       }
 
       const newPet: Pet = {
         id: BigInt(0),
         name: petName.trim(),
-        petType,
+        petType: petTypeValue,
         breed: undefined,
-        age: BigInt(ageNum),
+        age: BigInt(parseInt(age)),
         weight: undefined,
         gender: genderValue,
         lastVaccinatedDate: lastVaccinatedTimestamp,
-        vaccinations: [],
+        vaccinations,
+        photo: undefined,
       };
 
-      const petId = await submitPet.mutateAsync(newPet);
-
-      // Add upcoming vaccination if provided
-      if (upcomingVaccinationDate && upcomingVaccinationName.trim()) {
-        const vaccinationDate = new Date(upcomingVaccinationDate);
-        const dueDate = BigInt(vaccinationDate.getTime() * 1_000_000); // Convert to nanoseconds
-
-        await addVaccination.mutateAsync({
-          petId,
-          name: upcomingVaccinationName.trim(),
-          dueDate,
-          reminderFrequency: VaccinationFrequency.everyYear,
-        });
-      }
-
-      toast.success('Pet profile created successfully!');
+      await submitPet.mutateAsync(newPet);
+      toast.success('Pet added successfully!');
       onComplete();
     } catch (error: any) {
-      const errorMessage = error?.message || 'Failed to create pet profile';
+      const errorMessage = error?.message || 'Failed to add pet';
       toast.error(errorMessage);
       console.error(error);
     }
   };
 
   return (
-    <Card className="border-primary">
+    <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Heart className="h-5 w-5 text-primary" />
-          Add Your First Pet
-        </CardTitle>
+        <div className="flex items-center gap-2 mb-2">
+          <PawPrint className="h-6 w-6 text-primary" />
+          <CardTitle>Add Your First Pet</CardTitle>
+        </div>
         <CardDescription>
           Let's get started by adding your pet's information
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <Alert className="mb-6">
-          <AlertDescription>
-            Complete your pet's profile to unlock personalized care tips and vaccination reminders.
-          </AlertDescription>
-        </Alert>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="petName">Pet Name *</Label>
+          <Input
+            id="petName"
+            value={petName}
+            onChange={(e) => setPetName(e.target.value)}
+            placeholder="Enter your pet's name"
+          />
+        </div>
 
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="petName">Pet Name *</Label>
-            <Input
-              id="petName"
-              value={petName}
-              onChange={(e) => setPetName(e.target.value)}
-              placeholder="Enter your pet's name"
-            />
-          </div>
+        <div className="space-y-2">
+          <Label htmlFor="petType">Pet Type *</Label>
+          <Select value={petType} onValueChange={setPetType}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="dog">Dog</SelectItem>
+              <SelectItem value="cat">Cat</SelectItem>
+              <SelectItem value="bird">Bird</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="petType">Pet Type *</Label>
-            <Select value={petType} onValueChange={(value) => setPetType(value as PetType)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={PetType.dog}>Dog</SelectItem>
-                <SelectItem value={PetType.cat}>Cat</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="space-y-2">
+          <Label htmlFor="age">Age (years) *</Label>
+          <Input
+            id="age"
+            type="number"
+            value={age}
+            onChange={(e) => setAge(e.target.value)}
+            placeholder="Enter age"
+            min="0"
+          />
+        </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="age">Age (years) *</Label>
-            <Input
-              id="age"
-              type="number"
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
-              placeholder="Enter age"
-              min="0"
-            />
-          </div>
+        <div className="space-y-2">
+          <Label htmlFor="gender">Gender *</Label>
+          <Select value={gender} onValueChange={(value) => setGender(value as 'male' | 'female' | 'other')}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="male">Male</SelectItem>
+              <SelectItem value="female">Female</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="gender">Gender *</Label>
-            <Select value={gender} onValueChange={(value) => setGender(value as 'male' | 'female' | 'other')}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="space-y-2">
+          <Label htmlFor="lastVaccinatedDate">Last Vaccinated Date (optional)</Label>
+          <Input
+            id="lastVaccinatedDate"
+            type="date"
+            value={lastVaccinatedDate}
+            onChange={(e) => setLastVaccinatedDate(e.target.value)}
+          />
+        </div>
 
+        <div className="border-t pt-4 space-y-4">
+          <h3 className="font-semibold text-sm">Upcoming Vaccination (optional)</h3>
           <div className="space-y-2">
-            <Label htmlFor="lastVaccinatedDate">Last Vaccinated Date</Label>
-            <Input
-              id="lastVaccinatedDate"
-              type="date"
-              value={lastVaccinatedDate}
-              onChange={(e) => setLastVaccinatedDate(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="upcomingVaccinationName">Upcoming Vaccination Name</Label>
+            <Label htmlFor="upcomingVaccinationName">Vaccination Name</Label>
             <Input
               id="upcomingVaccinationName"
               value={upcomingVaccinationName}
@@ -181,9 +177,8 @@ export default function DashboardPetOnboarding({ onComplete }: DashboardPetOnboa
               placeholder="e.g., Rabies, DHPP"
             />
           </div>
-
           <div className="space-y-2">
-            <Label htmlFor="upcomingVaccinationDate">Upcoming Vaccination Date</Label>
+            <Label htmlFor="upcomingVaccinationDate">Due Date</Label>
             <Input
               id="upcomingVaccinationDate"
               type="date"
@@ -191,22 +186,18 @@ export default function DashboardPetOnboarding({ onComplete }: DashboardPetOnboa
               onChange={(e) => setUpcomingVaccinationDate(e.target.value)}
             />
           </div>
-
-          <Button 
-            onClick={handleSubmit} 
-            disabled={submitPet.isPending || addVaccination.isPending} 
-            className="w-full"
-          >
-            {(submitPet.isPending || addVaccination.isPending) ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating Profile...
-              </>
-            ) : (
-              'Complete Setup'
-            )}
-          </Button>
         </div>
+
+        <Button onClick={handleSubmit} disabled={submitPet.isPending} className="w-full">
+          {submitPet.isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Adding Pet...
+            </>
+          ) : (
+            'Add Pet'
+          )}
+        </Button>
       </CardContent>
     </Card>
   );

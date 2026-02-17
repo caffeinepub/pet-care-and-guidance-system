@@ -1,13 +1,18 @@
 # Specification
 
 ## Summary
-**Goal:** Provide a fully working Admin Dashboard at `/admin` with access control and end-to-end CRUD for categories, breeds, and video links.
+**Goal:** Restore a complete, navigable Pet Care and Guidance System with reliable pets/breeds catalogs, expanded pet coverage, improved rule-based AI assistant, stronger Health & Care content, smart vaccination reminders, and enforced Admin/User RBAC.
 
 **Planned changes:**
-- Add an “Admin” navigation entry that is visible only to signed-in administrators and routes to `/admin` (with sub-routes `/admin/categories`, `/admin/breeds`, `/admin/videos`).
-- Implement/ensure backend admin authorization via `isCallerAdmin`, including a secure bootstrap mechanism so at least one admin can be established on fresh deploys.
-- Wire up complete CRUD flows on existing admin pages/hooks for Pet Categories, Breeds (including category selection), and Video Links (breed/category/health-topic), with list refresh after mutations.
-- Ensure admin image uploaders store and render uploaded images (preview + persisted state) using the existing blob storage integration.
-- Add clear success/error feedback across admin actions (e.g., toast messages) and apply a cohesive, distinct admin visual theme across all admin routes (avoiding blue/purple as the primary palette).
+- Fix Pets/Breeds catalog rendering so Cats/Dogs/Birds/Other Pets and their routes always work; fall back to static catalogs when backend data is empty and correctly map backend data when present.
+- Implement the full hierarchical Pets module, including “Other Pets” subcategory groups and detail pages with descriptions, care info, images/placeholders, and titled YouTube links.
+- Expand Cat, Dog, and Parrot sections with multiple breed list/detail pages including required sections and embedded YouTube videos.
+- Expand Health & Care into grooming, nutrition, vaccination guidance, and emergency care, with topic pages (symptoms/causes/prevention/immediate steps), urgent labeling, safety notices, and titled YouTube guides.
+- Make a single centralized AI Assistant page linked from Home, Dashboard, and navbar with three options: Behavioral/Health Prediction, Emergency Care Assistance (interactive follow-ups and urgency), and Breed Identification via image upload, including clear disclaimers.
+- Update backend PetType support to include cat/dog/bird/other while keeping existing data readable and endpoints functioning.
+- Implement RBAC: protect admin routes and backend mutations, route admins to Admin Dashboard after login, hide admin controls from regular users, and provision exactly three initial admin accounts.
+- Add admin tooling to manage Health & Care content and to add/remove/disable user accounts; enforce disabled accounts across authenticated features.
+- Improve dashboard vaccination reminders to show due-today/tomorrow/this-week/this-month/overdue messaging and exclude completed vaccinations.
+- Apply a consistent modern, professional, friendly visual theme across user and admin areas with prominent safety/disclaimer presentation.
 
-**User-visible outcome:** Admin users can access a dedicated `/admin` area from the main navigation, manage categories/breeds/videos (including images) with immediate feedback and updates, while non-admin users are prevented from accessing admin routes and see an “Access Denied” screen.
+**User-visible outcome:** Users can browse a complete pets/breeds/health catalog (even if backend content is empty), manage broader pet profiles, receive clearer vaccination reminders, and use a centralized interactive AI assistant; admins can securely manage site content and users with protected access and correct post-login routing.

@@ -1,86 +1,115 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T13:08:37.509Z",
-  "summary": "Diff implements substantial admin UI (AdminShell theme, admin pages for categories/breeds/videos, RequireAdmin Access Denied screen, navbar Admin link gating, image uploader, and admin video hooks). However, the diff summary does not show any route registration for /admin and its subroutes, nor does it provide evidence of the required backend admin bootstrap mechanism and enforceable admin-only authorization for CRUD endpoints.",
+  "generatedAt": "2026-02-17T19:15:44.320Z",
+  "summary": "Diff implements several catalog/routing fixes, expanded breed catalog + breed pages with embedded YouTube, adds rule-based AI assistant components, expands backend PetType with a migration file, and adds vaccination reminder messaging utilities. However, RBAC/admin user-management and admin health-content tooling are not evidenced, several Health module navigation/urgent-label requirements are not evidenced, required image assets are not shown, and the full “Other Pets” hierarchical catalog cannot be confirmed from the provided diff summary.",
   "missing_requirements": [
     {
-      "id": "REQ-1",
-      "requirement": "Admin Dashboard reachable at /admin with sub-routes /admin/categories, /admin/breeds, /admin/videos; direct visits by non-admin show an Access Denied screen.",
-      "reason": "While RequireAdmin provides an Access Denied screen and Navbar conditionally shows an Admin link, the diff summary does not include any router configuration/route files proving that /admin and its subroutes are actually registered and wrapped with RequireAdmin.",
-      "evidence": [
-        "frontend/src/components/auth/RequireAdmin.tsx",
-        "frontend/src/components/navigation/Navbar.tsx",
-        "frontend/src/pages/admin/AdminLandingPage.tsx",
-        "frontend/src/pages/admin/AdminCategoriesPage.tsx",
-        "frontend/src/pages/admin/AdminBreedsPage.tsx",
-        "frontend/src/pages/admin/AdminVideosPage.tsx"
-      ]
-    },
-    {
       "id": "REQ-2",
-      "requirement": "Backend exposes working isCallerAdmin used by frontend, has a secure documented bootstrap mechanism for first admin on fresh deploy, and enforces admin-only authorization for category/breed/video CRUD.",
-      "reason": "backend/main.mo changes show inclusion of an authorization mixin/state, but the diff summary is truncated and does not show (a) an isCallerAdmin method, (b) a documented bootstrap mechanism, or (c) explicit authorization checks/traps on the admin CRUD methods for categories/breeds/videos.",
+      "requirement": "Implement the full hierarchical Pets module structure (Other Pets subcategories and required pet entries) with name/description/care/image(or placeholder)/titled YouTube links and hierarchical navigation.",
+      "reason": "While PetCategoryPage/PetDetailPage reference a static petsCatalog and render subcategories + pet detail content, the diff summary does not include the actual petsCatalog content showing that all specified subcategory groups and all listed pets exist with the required fields and titled YouTube links.",
       "evidence": [
-        "backend/main.mo (truncated)"
+        "frontend/src/pages/pets/PetCategoryPage.tsx",
+        "frontend/src/pages/pets/PetDetailPage.tsx"
       ]
     },
     {
-      "id": "REQ-3",
-      "requirement": "Complete Admin Dashboard CRUD for categories, breeds, and video links with list refresh after mutations, including image upload using existing blob storage integration.",
-      "reason": "Frontend admin pages and video hooks are present, but the diff summary does not show the corresponding backend CRUD endpoints for categories/breeds/videos or their admin-only authorization enforcement. Also, list refresh after category/breed mutations depends on hooks in useContentManagement, which are not included in the diff summary so cannot be verified.",
+      "id": "REQ-4",
+      "requirement": "Health & Care module must include grooming, nutrition, vaccination guidance, emergency care modules with category/topic navigation; each topic shows symptoms/causes/prevention/immediate steps + titled YouTube; emergency topics labeled urgent with safety notice to contact a veterinarian.",
+      "reason": "Health catalog and a HealthTopicPage are mentioned, but the diff summary does not show the /health landing page/navigation implementation, nor evidence of urgent/emergency visual labeling and explicit safety notice behavior for emergency topics across the module.",
       "evidence": [
-        "frontend/src/pages/admin/AdminCategoriesPage.tsx",
-        "frontend/src/pages/admin/AdminBreedsPage.tsx",
-        "frontend/src/pages/admin/AdminVideosPage.tsx",
-        "frontend/src/hooks/useAdminVideos.ts",
-        "frontend/src/components/admin/BlobImageUploader.tsx",
-        "backend/main.mo (truncated)"
+        "frontend-file-summaries.txt (mentions frontend/src/content/health/healthCatalog.ts and frontend/src/pages/health/HealthTopicPage.tsx)"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "requirement": "AI Assistant must be reachable from global navbar and via prominent links/buttons on Home and Dashboard; provide 3 working options (Behavioral/Health Prediction, Emergency Care Assistance, Breed Identification via image upload) with interactive follow-ups, risk-based guidance, and visible veterinarian disclaimer.",
+      "reason": "AI assistant components/pages are present, but the diff summary does not provide evidence that global navbar wiring and prominent Home/Dashboard entry points to /ai-assistant were implemented (routing/nav components are not shown).",
+      "evidence": [
+        "frontend-file-summaries.txt (mentions frontend/src/pages/ai/AIAssistantPage.tsx, frontend/src/pages/HomePage.tsx, frontend/src/pages/DashboardPage.tsx)"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "requirement": "Implement secure RBAC (Admin vs User) with backend role checks, protected admin routes, admin redirect after login, conditional admin UI controls, and a mechanism to provision exactly three initial admin accounts.",
+      "reason": "backend/main.mo shows AccessControl mixins and a disabled-user check helper, but the diff summary does not show admin role enforcement on mutating methods, protected-route logic on the frontend, admin/user post-login routing behavior, or a concrete “exactly three initial admins” bootstrap/allowlist mechanism.",
+      "evidence": [
+        "backend/main.mo",
+        "frontend/src/pages/auth/LoginPage.tsx (mentioned in frontend-file-summaries.txt)"
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "requirement": "Add admin tooling to create/edit/delete Health & Care categories/topics and manage their titled video links; health browsing remains available to all users and reflects admin changes.",
+      "reason": "No admin health-content CRUD UI or corresponding backend admin methods are evidenced in the diff summary (only health topic viewing and video link manager changes are shown).",
+      "evidence": [
+        "frontend/src/components/admin/AdminVideoLinksManager.tsx",
+        "frontend-file-summaries.txt (mentions frontend/src/pages/health/HealthTopicPage.tsx)"
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "requirement": "Admin functionality to add/remove/disable user accounts; enforce disabled accounts so disabled users cannot access authenticated features and see a clear UI message; allow re-enable.",
+      "reason": "backend/main.mo includes disabled-user detection/trap helper, but the diff summary does not show admin-facing user list/disable/enable/remove tooling, nor frontend handling to present a clear disabled-account UI state when backend rejects calls.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "requirement": "Dashboard smart vaccination reminders must show due today/tomorrow/this week/this month/overdue states, exclude completed vaccinations, and work consistently across multiple pets/vaccinations.",
+      "reason": "A reminder-message utility is added and Dashboard imports it, but the diff summary does not show the dashboard logic that filters out completed vaccinations and aggregates multiple pets/vaccinations to meet the acceptance criteria.",
+      "evidence": [
+        "frontend/src/lib/vaccinationReminders.ts",
+        "frontend/src/pages/DashboardPage.tsx"
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "requirement": "Implement a coherent modern, professional, friendly visual theme consistently across the entire app; responsive; safety disclaimers and emergency guidance visually prominent.",
+      "reason": "Some pages/components were updated with styling classes, but the diff summary does not provide sufficient evidence of consistent theme enforcement across all modules (including admin vs user areas) beyond localized class usage.",
+      "evidence": [
+        "frontend/src/pages/DashboardPage.tsx",
+        "frontend-file-summaries.txt (mentions multiple page updates)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Large static breed catalog expansion including 30+ bird breeds (in addition to cats/dogs).",
-      "reason": "Not requested by the BuildRequest (scope was admin dashboard routes/access control/CRUD for categories, breeds, and video links).",
+      "description": "AI Assistant includes an extra tab/option (“Check Your Breed”) and an optional developer test harness via query parameter.",
+      "reason": "REQ-5 specifies exactly three AI options; the diff summary explicitly describes four tabs and a dev test harness not requested.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/content/pets/breedsCatalog.ts)"
+        "frontend-file-summaries.txt (mentions frontend/src/pages/ai/AIAssistantPage.tsx)"
       ]
     },
     {
-      "description": "AI Assistant page includes an optional developer test harness accessible via query parameter for testing breed identification accuracy.",
-      "reason": "Not requested; BuildRequest explicitly scoped to admin dashboard functionality and non-goals did not include adding dev harnesses.",
+      "description": "URL/session parameter persistence utilities with commentary suggesting maintaining an “admin token” in sessionStorage.",
+      "reason": "The BuildRequest requires RBAC via secure backend role checks and Internet Identity; no admin-token-through-URL/session mechanism was requested, and this suggests an alternative auth pattern.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/pages/ai/AIAssistantPage.tsx)"
-      ]
-    },
-    {
-      "description": "New/expanded emergency triage and behavioral assessment rule engines and multi-step flows.",
-      "reason": "Not requested as part of building the admin dashboard panel.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/src/components/ai/emergency/EmergencyTriageFlow.tsx)",
-        "frontend-file-summaries.txt (frontend/src/lib/ai/emergencyTriageRules.ts)",
-        "frontend-file-summaries.txt (frontend/src/components/ai/behavior/BehaviorHealthAssessment.tsx)",
-        "frontend-file-summaries.txt (frontend/src/lib/ai/behaviorHealthRules.ts)"
+        "frontend/src/utils/urlParams.ts"
       ]
     }
   ],
   "confidence": 0.62,
   "changed_files": [
     "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/admin/AdminShell.tsx",
     "frontend/src/components/admin/AdminVideoLinksManager.tsx",
-    "frontend/src/components/admin/BlobImageUploader.tsx",
-    "frontend/src/components/auth/RequireAdmin.tsx",
-    "frontend/src/components/navigation/Navbar.tsx",
-    "frontend/src/hooks/useAdminVideos.ts",
-    "frontend/src/index.css",
-    "frontend/src/pages/admin/AdminBreedsPage.tsx",
-    "frontend/src/pages/admin/AdminCategoriesPage.tsx",
-    "frontend/src/pages/admin/AdminLandingPage.tsx",
+    "frontend/src/components/onboarding/DashboardPetOnboarding.tsx",
+    "frontend/src/components/profile/PetsManager.tsx",
+    "frontend/src/content/pets/breedsCatalog.ts",
+    "frontend/src/lib/vaccinationReminders.ts",
+    "frontend/src/pages/DashboardPage.tsx",
     "frontend/src/pages/admin/AdminVideosPage.tsx",
-    "frontend/tailwind.config.js",
+    "frontend/src/pages/pets/BreedDetailPage.tsx",
+    "frontend/src/pages/pets/BreedListPage.tsx",
+    "frontend/src/pages/pets/PetCategoryPage.tsx",
+    "frontend/src/pages/pets/PetDetailPage.tsx",
+    "frontend/src/pages/pets/PetsLandingPage.tsx",
+    "frontend/src/utils/catalogRouting.ts",
+    "frontend/src/utils/petTypeHelpers.ts",
+    "frontend/src/utils/urlParams.ts",
     "project_state.json"
   ]
 }

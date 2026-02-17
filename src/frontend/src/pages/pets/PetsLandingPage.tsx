@@ -2,10 +2,13 @@ import { Link } from '@tanstack/react-router';
 import { useGetAllPetCategories } from '../../hooks/useContentManagement';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Cat, Dog, Bird, Rabbit } from 'lucide-react';
+import { mapCategoryNameToSlug } from '../../utils/catalogRouting';
+import type { ExternalBlob } from '../../backend';
 
 export default function PetsLandingPage() {
   const { data: backendCategories = [], isLoading } = useGetAllPetCategories();
 
+  // Always show the four core categories
   const staticCategories = [
     {
       id: 'cat',
@@ -51,16 +54,28 @@ export default function PetsLandingPage() {
     'Other Pets': 'text-purple-500',
   };
 
+  // Merge backend categories with static ones, preferring backend data when available
   const categories = backendCategories.length > 0
-    ? backendCategories.map(cat => ({
-        id: cat.name.toLowerCase().replace(/\s+/g, '-'),
-        name: cat.name,
-        description: cat.description,
-        icon: iconMap[cat.name] || Rabbit,
-        color: colorMap[cat.name] || 'text-purple-500',
-        image: cat.image,
-      }))
-    : staticCategories;
+    ? staticCategories.map(staticCat => {
+        const backendCat = backendCategories.find(bc => 
+          mapCategoryNameToSlug(bc.name) === staticCat.id
+        );
+        if (backendCat) {
+          return {
+            id: staticCat.id,
+            name: backendCat.name,
+            description: backendCat.description,
+            icon: staticCat.icon,
+            color: staticCat.color,
+            image: backendCat.image as ExternalBlob | undefined,
+          };
+        }
+        return {
+          ...staticCat,
+          image: undefined as ExternalBlob | undefined,
+        };
+      })
+    : staticCategories.map(cat => ({ ...cat, image: undefined as ExternalBlob | undefined }));
 
   return (
     <div className="container-custom section-spacing animate-fade-in">

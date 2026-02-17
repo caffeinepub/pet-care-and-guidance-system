@@ -2,11 +2,14 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-make-the-admin-dashboard-discoverable-and-accessible-ensure-there-is-a-visible-navigation-entry-to-the-admin-dashboard-for-administrators-and-that-the-admin-dashboard-is-reachable-at-the-admin-route-with-sub-routes-admin-categories-admin-breeds-admin-videos",
-      "featureTitle": "Make the Admin Dashboard discoverable and accessible: ensure there is a visible navigation entry to the admin dashboard for administrators and that the admin dashboard is reachable at the /admin route (with sub-routes /admin/categories, /admin/breeds, /admin/videos).",
+      "featureId": "feature-fix-the-no-breed-or-category-available-issue-by-ensuring-pets-and-breeds-always-render-a-complete-working-catalog-1-when-backend-returns-empty-lists-frontend-must-reliably-fall-back-to-the-existing-static-catalogs-2-when-backend-has-data-frontend-must-correctly-map-backend-categories-breeds-to-routes-so-cat-dog-bird-other-pets-and-their-pages-remain-reachable",
+      "featureTitle": "Fix the \"no breed or category available\" issue by ensuring Pets and Breeds always render a complete, working catalog: (1) when backend returns empty lists, frontend must reliably fall back to the existing static catalogs; (2) when backend has data, frontend must correctly map backend categories/breeds to routes so Cat/Dog/Bird/Other Pets and their pages remain reachable.",
       "files": [
-        "frontend/src/components/auth/RequireAdmin.tsx",
-        "frontend/src/components/navigation/Navbar.tsx"
+        "frontend/src/pages/pets/BreedDetailPage.tsx",
+        "frontend/src/pages/pets/BreedListPage.tsx",
+        "frontend/src/pages/pets/PetCategoryPage.tsx",
+        "frontend/src/pages/pets/PetsLandingPage.tsx",
+        "frontend/src/utils/catalogRouting.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -23,15 +26,33 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-deliver-a-complete-admin-dashboard-experience-with-working-crud-for-pet-categories-breeds-and-admin-managed-video-links-including-image-upload-support-using-the-existing-admin-pages-and-hooks",
-      "featureTitle": "Deliver a complete Admin Dashboard experience with working CRUD for pet categories, breeds, and admin-managed video links, including image upload support, using the existing admin pages and hooks.",
+      "featureId": "feature-implement-the-full-hierarchical-pets-module-structure-requested-by-the-user-including-other-pets-subcategories-small-mammals-rabbit-hamster-guinea-pig-gerbil-mouse-rat-ferret-chinchilla-hedgehog-aquatic-pets-goldfish-betta-fish-guppy-angelfish-tetra-koi-fish-mollies-platies-shrimp-snails-reptiles-turtle-or-tortoise-lizard-types-snake-types-chameleon-skink-amphibians-frog-toad-salamander-newt-other-birds-canary-finch-pigeon-dove-lovebird-budgerigar-quail-insects-and-arthropods-ant-farms-stick-insects-praying-mantis-tarantula-scorpion-exotic-pets-sugar-glider-mini-pig-raccoon-fox-skunk-where-legal-and-farm-style-pets-chicken-duck-goose-miniature-goat-each-entry-must-have-name-clear-description-care-information-an-image-or-a-safe-placeholder-and-related-youtube-video-links-with-proper-titles",
+      "featureTitle": "Implement the full hierarchical Pets module structure requested by the user, including Other Pets subcategories: Small Mammals (Rabbit, Hamster, Guinea Pig, Gerbil, Mouse, Rat, Ferret, Chinchilla, Hedgehog), Aquatic Pets (Goldfish, Betta Fish, Guppy, Angelfish, Tetra, Koi Fish, Mollies & Platies, Shrimp, Snails), Reptiles (Turtle or Tortoise, Lizard types, Snake types, Chameleon, Skink), Amphibians (Frog, Toad, Salamander, Newt), Other Birds (Canary, Finch, Pigeon, Dove, Lovebird, Budgerigar, Quail), Insects and Arthropods (Ant farms, Stick insects, Praying mantis, Tarantula, Scorpion), Exotic Pets (Sugar Glider, Mini Pig, Raccoon, Fox, Skunk where legal), and Farm-Style Pets (Chicken, Duck, Goose, Miniature Goat). Each entry must have: name, clear description, care information, an image (or a safe placeholder), and related YouTube video links with proper titles.",
       "files": [
-        "frontend/src/components/admin/AdminVideoLinksManager.tsx",
-        "frontend/src/components/admin/BlobImageUploader.tsx",
-        "frontend/src/hooks/useAdminVideos.ts",
-        "frontend/src/pages/admin/AdminBreedsPage.tsx",
-        "frontend/src/pages/admin/AdminCategoriesPage.tsx",
-        "frontend/src/pages/admin/AdminVideosPage.tsx"
+        "frontend/src/pages/pets/PetCategoryPage.tsx",
+        "frontend/src/pages/pets/PetDetailPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-expand-the-cat-dog-and-parrot-sections-to-include-detailed-breed-pages-for-common-breeds-each-breed-page-must-display-breed-description-temperament-diet-care-tips-common-health-issues-images-and-embedded-recommended-youtube-videos-on-the-same-page",
+      "featureTitle": "Expand the Cat, Dog, and Parrot sections to include detailed breed pages for common breeds. Each breed page must display: breed description, temperament, diet, care tips, common health issues, images, and embedded recommended YouTube videos on the same page.",
+      "files": [
+        "frontend/src/content/pets/breedsCatalog.ts",
+        "frontend/src/pages/pets/BreedDetailPage.tsx",
+        "frontend/src/pages/pets/BreedListPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -48,15 +69,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-apply-a-cohesive-distinct-visual-theme-for-the-admin-dashboard-pages-layout-typography-spacing-and-component-styling-that-is-consistent-across-admin-admin-categories-admin-breeds-and-admin-videos",
-      "featureTitle": "Apply a cohesive, distinct visual theme for the admin dashboard pages (layout, typography, spacing, and component styling) that is consistent across /admin, /admin/categories, /admin/breeds, and /admin/videos.",
+      "featureId": "feature-make-the-ai-assistant-page-a-single-centralized-experience-accessible-from-both-home-and-dashboard-that-provides-three-fully-working-ai-options-1-behavioral-and-health-prediction-2-emergency-care-assistance-and-3-breed-identification-using-image-upload-the-assistant-must-be-interactive-and-logical-asking-follow-up-questions-for-symptom-reports-and-providing-higher-risk-vs-lower-risk-guidance-and-must-clearly-state-it-does-not-replace-a-professional-veterinarian",
+      "featureTitle": "Make the AI Assistant page a single, centralized experience accessible from both Home and Dashboard that provides three fully working AI options: (1) Behavioral and Health Prediction, (2) Emergency Care Assistance, and (3) Breed Identification using Image Upload. The assistant must be interactive and logical, asking follow-up questions for symptom reports and providing higher-risk vs lower-risk guidance, and must clearly state it does not replace a professional veterinarian.",
       "files": [
-        "frontend/src/components/admin/AdminShell.tsx",
-        "frontend/src/index.css",
-        "frontend/src/pages/admin/AdminBreedsPage.tsx",
-        "frontend/src/pages/admin/AdminCategoriesPage.tsx",
-        "frontend/src/pages/admin/AdminLandingPage.tsx",
-        "frontend/src/pages/admin/AdminVideosPage.tsx"
+        "frontend/src/pages/DashboardPage.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -68,7 +84,48 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-4"
+        "REQ-5"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-admin-functionality-to-add-remove-or-disable-user-accounts-and-enforce-disabled-accounts-so-they-cannot-access-authenticated-features-dashboard-profile-favorites-pet-management",
+      "featureTitle": "Add admin functionality to add, remove, or disable user accounts, and enforce disabled accounts so they cannot access authenticated features (dashboard/profile/favorites/pet management).",
+      "files": [
+        "frontend/src/pages/DashboardPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-9"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-smart-vaccination-reminders-support-daily-weekly-monthly-style-messaging-e-g-vaccination-is-due-this-month-vaccination-is-tomorrow-in-the-dashboard-based-on-each-vaccination-due-date-and-reminders-update-correctly-over-time",
+      "featureTitle": "Ensure smart vaccination reminders support daily/weekly/monthly-style messaging (e.g., “Vaccination is due this month”, “Vaccination is tomorrow”) in the dashboard, based on each vaccination due date, and reminders update correctly over time.",
+      "files": [
+        "frontend/src/lib/vaccinationReminders.ts",
+        "frontend/src/pages/DashboardPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-10"
       ],
       "confidence": "high"
     }

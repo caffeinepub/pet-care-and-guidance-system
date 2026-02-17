@@ -6,13 +6,12 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
-import { Alert, AlertDescription } from '../ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Loader2, Plus, Trash2, Edit, PawPrint } from 'lucide-react';
 import { toast } from 'sonner';
 import BlobImageUploader from '../admin/BlobImageUploader';
-import type { Pet, Gender, ExternalBlob } from '../../backend';
-import { PetType } from '../../backend';
+import type { Pet, Gender, PetType, ExternalBlob } from '../../backend';
+import { petTypeToString, stringToPetType, getPetTypeDisplayName } from '../../utils/petTypeHelpers';
 
 export default function PetsManager() {
   const { data: profile, isLoading, isFetched } = useGetCallerUserProfile();
@@ -24,7 +23,7 @@ export default function PetsManager() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingPet, setEditingPet] = useState<Pet | null>(null);
   const [petName, setPetName] = useState('');
-  const [petType, setPetType] = useState<PetType>(PetType.dog);
+  const [petType, setPetType] = useState<string>('dog');
   const [breed, setBreed] = useState('');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState<'male' | 'female' | 'other'>('male');
@@ -35,7 +34,7 @@ export default function PetsManager() {
 
   const resetForm = () => {
     setPetName('');
-    setPetType(PetType.dog);
+    setPetType('dog');
     setBreed('');
     setAge('');
     setGender('male');
@@ -50,7 +49,7 @@ export default function PetsManager() {
     if (pet) {
       setEditingPet(pet);
       setPetName(pet.name);
-      setPetType(pet.petType);
+      setPetType(petTypeToString(pet.petType));
       setBreed(pet.breed || '');
       setAge(pet.age.toString());
       
@@ -126,6 +125,9 @@ export default function PetsManager() {
         genderValue = { __kind__: 'other', other: 'Not specified' };
       }
 
+      // Prepare pet type
+      const petTypeValue: PetType = stringToPetType(petType);
+
       // Prepare last vaccinated date
       let lastVaccinatedTimestamp: bigint | undefined;
       if (lastVaccinatedDate) {
@@ -139,7 +141,7 @@ export default function PetsManager() {
           updatedPet: {
             ...editingPet,
             name: petName.trim(),
-            petType,
+            petType: petTypeValue,
             breed: breed.trim() || undefined,
             age: BigInt(ageNum),
             gender: genderValue,
@@ -152,7 +154,7 @@ export default function PetsManager() {
         const newPet: Pet = {
           id: BigInt(0),
           name: petName.trim(),
-          petType,
+          petType: petTypeValue,
           breed: breed.trim() || undefined,
           age: BigInt(ageNum),
           weight: undefined,
@@ -247,13 +249,15 @@ export default function PetsManager() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="petType">Pet Type *</Label>
-                  <Select value={petType} onValueChange={(value) => setPetType(value as PetType)}>
+                  <Select value={petType} onValueChange={setPetType}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={PetType.dog}>Dog</SelectItem>
-                      <SelectItem value={PetType.cat}>Cat</SelectItem>
+                      <SelectItem value="dog">Dog</SelectItem>
+                      <SelectItem value="cat">Cat</SelectItem>
+                      <SelectItem value="bird">Bird</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -316,19 +320,16 @@ export default function PetsManager() {
       </CardHeader>
       <CardContent>
         {isNewProfile && (
-          <Alert className="mb-4">
-            <AlertDescription>
-              Please save your profile information first before adding pets.
-            </AlertDescription>
-          </Alert>
+          <div className="text-center py-8 text-muted-foreground">
+            <p>Create your profile first to add pets</p>
+          </div>
         )}
-        {pets.length === 0 ? (
-          <Alert>
-            <AlertDescription>
-              You haven't added any pets yet. Click "Add Pet" to get started.
-            </AlertDescription>
-          </Alert>
-        ) : (
+        {!isNewProfile && pets.length === 0 && (
+          <div className="text-center py-8 text-muted-foreground">
+            <p>No pets added yet. Click "Add Pet" to get started!</p>
+          </div>
+        )}
+        {pets.length > 0 && (
           <div className="space-y-4">
             {pets.map((pet) => {
               const genderDisplay = 
@@ -336,44 +337,29 @@ export default function PetsManager() {
                 pet.gender.__kind__ === 'female' ? 'Female' :
                 pet.gender.other;
 
-              const lastVaccinated = pet.lastVaccinatedDate 
-                ? new Date(Number(pet.lastVaccinatedDate) / 1_000_000).toLocaleDateString()
-                : null;
-
-              const petPhotoUrl = pet.photo?.getDirectURL();
-
               return (
-                <div key={Number(pet.id)} className="flex items-center justify-between p-4 rounded-lg border">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-16 w-16">
-                      <AvatarImage src={petPhotoUrl} alt={pet.name} />
+                <div key={Number(pet.id)} className="flex items-center gap-4 p-4 rounded-lg border bg-card">
+                  <Avatar className="h-16 w-16">
+                    {pet.photo ? (
+                      <AvatarImage src={pet.photo.getDirectURL()} alt={pet.name} />
+                    ) : (
                       <AvatarFallback>
                         <PawPrint className="h-8 w-8 text-muted-foreground" />
                       </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h4 className="font-semibold">{pet.name}</h4>
-                      <p className="text-sm text-muted-foreground capitalize">
-                        {pet.petType} • {genderDisplay} • {pet.age.toString()} years old
-                        {pet.breed && ` • ${pet.breed}`}
-                      </p>
-                      {lastVaccinated && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Last vaccinated: {lastVaccinated}
-                        </p>
-                      )}
-                    </div>
+                    )}
+                  </Avatar>
+                  <div className="flex-1">
+                    <h4 className="font-semibold">{pet.name}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {getPetTypeDisplayName(pet.petType)} • {genderDisplay} • {pet.age.toString()} years old
+                      {pet.breed && ` • ${pet.breed}`}
+                    </p>
                   </div>
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" onClick={() => handleOpenDialog(pet)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRemovePet(pet.id)}
-                      disabled={removePet.isPending}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => handleRemovePet(pet.id)} disabled={removePet.isPending}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>

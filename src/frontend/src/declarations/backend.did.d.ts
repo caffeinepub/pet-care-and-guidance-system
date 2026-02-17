@@ -22,6 +22,13 @@ export interface Favorite { 'name' : string, 'videoId' : VideoId }
 export type Gender = { 'other' : string } |
   { 'female' : null } |
   { 'male' : null };
+export interface HealthContent {
+  'title' : string,
+  'description' : string,
+  'petType' : PetType,
+  'category' : string,
+  'videos' : Array<YoutubeVideo>,
+}
 export interface Pet {
   'id' : PetId,
   'age' : bigint,
@@ -42,7 +49,9 @@ export interface PetCategory {
 }
 export type PetId = bigint;
 export type PetType = { 'cat' : null } |
-  { 'dog' : null };
+  { 'dog' : null } |
+  { 'other' : string } |
+  { 'bird' : null };
 export type Timestamp = bigint;
 export interface UserProfile {
   'favorites' : Array<Favorite>,
@@ -106,6 +115,7 @@ export interface _SERVICE {
   'addAdminVideoLink' : ActorMethod<[VideoLink], VideoId>,
   'addBreed' : ActorMethod<[Breed], undefined>,
   'addFavorite' : ActorMethod<[VideoId, string], undefined>,
+  'addHealthContent' : ActorMethod<[HealthContent], undefined>,
   'addPet' : ActorMethod<[Pet], PetId>,
   'addPetCategory' : ActorMethod<[PetCategory], undefined>,
   'addVaccination' : ActorMethod<
@@ -113,14 +123,19 @@ export interface _SERVICE {
     undefined
   >,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'disableUser' : ActorMethod<[Principal], undefined>,
+  'enableUser' : ActorMethod<[Principal, UserProfile], undefined>,
   'getAllAdminVideoLinks' : ActorMethod<[], Array<VideoLink>>,
   'getAllBreeds' : ActorMethod<[], Array<Breed>>,
   'getAllFavoriteVideos' : ActorMethod<[], Array<Favorite>>,
+  'getAllHealthContent' : ActorMethod<[], Array<HealthContent>>,
   'getAllPetCategories' : ActorMethod<[], Array<PetCategory>>,
   'getBreedsByCategory' : ActorMethod<[string], Array<Breed>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getDashboardInfo' : ActorMethod<[], UserProfile>,
+  'getHealthContentByCategory' : ActorMethod<[string], Array<HealthContent>>,
+  'getHealthContentByPetType' : ActorMethod<[PetType], Array<HealthContent>>,
   'getPet' : ActorMethod<[PetId], Pet>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'getVaccinationReminders' : ActorMethod<
@@ -133,12 +148,14 @@ export interface _SERVICE {
   'removeAdminVideoLink' : ActorMethod<[VideoId], undefined>,
   'removeBreed' : ActorMethod<[string], undefined>,
   'removeFavorite' : ActorMethod<[VideoId], undefined>,
+  'removeHealthContent' : ActorMethod<[string], undefined>,
   'removePet' : ActorMethod<[PetId], undefined>,
   'removePetCategory' : ActorMethod<[string], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'submitOnboardingPet' : ActorMethod<[Pet], PetId>,
   'updateAdminVideoLink' : ActorMethod<[VideoId, VideoLink], undefined>,
   'updateBreed' : ActorMethod<[string, Breed], undefined>,
+  'updateHealthContent' : ActorMethod<[string, HealthContent], undefined>,
   'updatePet' : ActorMethod<[PetId, Pet], undefined>,
   'updatePetCategory' : ActorMethod<[string, PetCategory], undefined>,
 }
