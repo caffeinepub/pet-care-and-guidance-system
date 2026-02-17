@@ -1,0 +1,71 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "PetGuide Admin: Fix admin detection and make admin content management fully usable",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Fix frontend admin role detection to call an existing backend admin-check method and ensure admin navigation + /admin access gating works correctly.",
+      "acceptanceCriteria": [
+        "When signed in as an admin principal, the navbar shows an “Admin” link that navigates to /admin.",
+        "When signed in as a non-admin principal, the “Admin” link is not shown and visiting /admin shows an access denied screen.",
+        "The frontend admin role hook calls an existing backend method that actually exists (e.g., the frontend must not call a non-existent method name).",
+        "The backend exposes a query method that returns whether the caller is an admin (currently backend/main.mo exposes `isAdmin()`), and the frontend uses that method consistently."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/backend.d.ts",
+          "operation": "modify",
+          "description": "Align the frontend backend interface typing with the admin-check capability expected by the app: ensure the interface includes the backend admin query method name used by the frontend (e.g., add `isAdmin(): Promise<boolean>` if the backend exposes it, while preserving any existing method signatures for compatibility). This supports the authorization component’s role-based access control expectations. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useCallerRole.ts",
+          "operation": "modify",
+          "description": "Update the admin role hook to (1) avoid running the admin-check query when the user is not authenticated, and (2) call the correct existing backend admin-check method consistently (prefer the backend’s `isAdmin()` if present; otherwise fall back safely to the currently available method), returning stable `isAdmin/isLoading/isFetched` state for UI guards and navbar. This uses the authorization component’s role-based access control flow. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/navigation/Navbar.tsx",
+          "operation": "modify",
+          "description": "Ensure the Admin navigation link visibility is driven by the corrected admin role hook state (admin-only), without showing Admin for non-admins; keep all user-facing text in English. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Ensure the Admin panel has fully working admin-only management sections for Pet Categories, Breeds, and YouTube Video Links (add/edit/delete), including image upload where supported.",
+      "acceptanceCriteria": [
+        "Admin Dashboard (/admin) displays navigation cards for managing Pet Categories, Breeds, and Video Links.",
+        "Admins can open the Pet Categories admin page and create/update/delete categories (including optional image upload where supported by existing UI).",
+        "Admins can open the Breeds admin page and create/update/delete breeds (including optional image upload where supported by existing UI).",
+        "Admins can open the Video Links admin page and create/update/delete YouTube video links (using the existing admin video management flow)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/admin/AdminLandingPage.tsx",
+          "operation": "modify",
+          "description": "Confirm Admin Dashboard navigation cards and copy remain accurate for managing Pet Categories, Breeds, and Video Links, and that links route to the existing admin management pages. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/admin/AdminCategoriesPage.tsx",
+          "operation": "modify",
+          "description": "Validate and refine the Pet Categories admin CRUD flow to ensure create/update/delete work end-to-end and image upload continues to use the existing BlobImageUploader (blob-storage ExternalBlob) correctly. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/admin/AdminBreedsPage.tsx",
+          "operation": "modify",
+          "description": "Validate and refine the Breeds admin CRUD flow to ensure create/update/delete work end-to-end and image upload continues to use the existing BlobImageUploader (blob-storage ExternalBlob) correctly. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/admin/AdminVideoLinksManager.tsx",
+          "operation": "create",
+          "description": "Create an admin-only video management UI component that lists videos by selected category (breed / pet type / health topic) using the existing admin video hooks (useGetVideosByCategory, add/update/remove), and provides edit + delete actions that drive the existing dialog form in the page. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/admin/AdminVideosPage.tsx",
+          "operation": "modify",
+          "description": "Replace the placeholder VideoList with a working implementation by wiring the new AdminVideoLinksManager: (1) enable selecting a specific breed/category/health topic to load videos via useGetVideosByCategory, (2) render returned VideoLink items with edit/delete controls, and (3) keep add/edit/delete using the existing admin video management hooks. Verify the component's usage instructions before implementing."
+        }
+      ]
+    }
+  ]
+}

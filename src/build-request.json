@@ -1,0 +1,61 @@
+{
+  "kind": "build_request",
+  "title": "Fix admin access and surface admin panel for content management",
+  "projectName": "PetGuide Admin",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Fix the admin role check so the frontend correctly detects when the signed-in user is an admin, and ensure the Admin navigation link and /admin routes become accessible for admins.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "i am the admin but i can not see any admin plus points like adding a breed adding related video links (youtube) adding new pet categories etc in this web please add admin panel where i can do all these"
+        ]
+      },
+      "acceptanceCriteria": [
+        "When signed in as an admin principal, the navbar shows an “Admin” link that navigates to /admin.",
+        "When signed in as a non-admin principal, the “Admin” link is not shown and visiting /admin shows an access denied screen.",
+        "The frontend admin role hook calls an existing backend method that actually exists (e.g., the frontend must not call a non-existent method name).",
+        "The backend exposes a query method that returns whether the caller is an admin (currently backend/main.mo exposes `isAdmin()`), and the frontend uses that method consistently."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Ensure the Admin panel provides working sections to add/edit/delete Pet Categories, Breeds, and related YouTube video links, gated behind admin-only access.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "please add admin panel where i can do all these"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin Dashboard (/admin) displays navigation cards for managing Pet Categories, Breeds, and Video Links.",
+        "Admins can open the Pet Categories admin page and create/update/delete categories (including optional image upload where supported by existing UI).",
+        "Admins can open the Breeds admin page and create/update/delete breeds (including optional image upload where supported by existing UI).",
+        "Admins can open the Video Links admin page and create/update/delete YouTube video links (using the existing admin video management flow)."
+      ]
+    }
+  ],
+  "constraints": [
+    "Backend must remain a single Motoko actor in backend/main.mo; do not introduce additional backend services.",
+    "Do not edit files under frontend/src/components/ui (read-only UI primitives).",
+    "Do not edit frontend immutable hook files listed in system constraints; implement changes in editable hooks/components/pages instead.",
+    "All user-facing text must be in English."
+  ],
+  "nonGoals": [
+    "Adding third-party authentication providers (only Internet Identity is supported).",
+    "Adding external databases or non-IC storage backends.",
+    "Implementing real-time collaboration or chat in the admin panel."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

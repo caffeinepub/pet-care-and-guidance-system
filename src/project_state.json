@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "Pet guide web app with a live production deployment; user requests an admin panel to manage app content (breeds, pet categories, and related YouTube video links).",
+  "architectural_notes": [],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-fix-the-admin-role-check-so-the-frontend-correctly-detects-when-the-signed-in-user-is-an-admin-and-ensure-the-admin-navigation-link-and-admin-routes-become-accessible-for-admins",
+      "title": "Fix the admin role check so the frontend correctly detects when the signed-in user is an admin, and ensure the Admin navigation link and /admin routes become accessible for admins.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-admin-panel-provides-working-sections-to-add-edit-delete-pet-categories-breeds-and-related-youtube-video-links-gated-behind-admin-only-access",
+      "title": "Ensure the Admin panel provides working sections to add/edit/delete Pet Categories, Breeds, and related YouTube video links, gated behind admin-only access.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Add an admin panel for managing content: add/edit/delete breeds, pet categories, and related YouTube video links.",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "PetGuide Admin",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

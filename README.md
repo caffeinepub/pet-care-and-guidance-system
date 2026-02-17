@@ -1,2 +1,3 @@
-# pet-care-and-guidance-system
-Exported from Caffeine project: Admin-managed related YouTube video links for pets, breeds, and health topics
+## 
+
+To run app build and run docker image: `docker build -t app . docker run -it --network host app`

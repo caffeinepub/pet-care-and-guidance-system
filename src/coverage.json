@@ -1,0 +1,65 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-17T12:12:26.123Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 2,
+    "implemented": 2,
+    "items": [
+      {
+        "id": "REQ-1",
+        "summary": "Fix the admin role check so the frontend correctly detects when the signed-in user is an admin, and ensure the Admin navigation link and /admin routes become accessible for admins.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/backend.d.ts",
+          "frontend/src/hooks/useCallerRole.ts",
+          "frontend/src/components/navigation/Navbar.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/backend.d.ts",
+          "frontend/src/hooks/useCallerRole.ts"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Ensure the Admin panel provides working sections to add/edit/delete Pet Categories, Breeds, and related YouTube video links, gated behind admin-only access.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/admin/AdminLandingPage.tsx",
+          "frontend/src/pages/admin/AdminCategoriesPage.tsx",
+          "frontend/src/pages/admin/AdminBreedsPage.tsx",
+          "frontend/src/components/admin/AdminVideoLinksManager.tsx",
+          "frontend/src/pages/admin/AdminVideosPage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/admin/AdminVideoLinksManager.tsx",
+          "frontend/src/pages/admin/AdminVideosPage.tsx"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "backend/main.mo",
+    "build-request.json",
+    "caffeine.lock.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/admin/AdminVideoLinksManager.tsx",
+    "frontend/src/config.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useCallerRole.ts",
+    "frontend/src/pages/admin/AdminVideosPage.tsx",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}

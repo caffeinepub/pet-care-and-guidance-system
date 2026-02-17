@@ -1,0 +1,46 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-fix-the-admin-role-check-so-the-frontend-correctly-detects-when-the-signed-in-user-is-an-admin-and-ensure-the-admin-navigation-link-and-admin-routes-become-accessible-for-admins",
+      "featureTitle": "Fix the admin role check so the frontend correctly detects when the signed-in user is an admin, and ensure the Admin navigation link and /admin routes become accessible for admins.",
+      "files": [
+        "frontend/src/hooks/useCallerRole.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-the-admin-panel-provides-working-sections-to-add-edit-delete-pet-categories-breeds-and-related-youtube-video-links-gated-behind-admin-only-access",
+      "featureTitle": "Ensure the Admin panel provides working sections to add/edit/delete Pet Categories, Breeds, and related YouTube video links, gated behind admin-only access.",
+      "files": [
+        "frontend/src/components/admin/AdminVideoLinksManager.tsx",
+        "frontend/src/pages/admin/AdminVideosPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    }
+  ]
+}
