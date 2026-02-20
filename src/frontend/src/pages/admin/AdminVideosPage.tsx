@@ -18,8 +18,8 @@ import { petTypeToString, stringToPetType } from '../../utils/petTypeHelpers';
 
 export default function AdminVideosPage() {
   const { identity } = useInternetIdentity();
-  const { data: breeds = [], isLoading: breedsLoading } = useGetAllBreeds();
-  const { data: categories = [], isLoading: categoriesLoading } = useGetAllPetCategories();
+  const { data: breeds = [], isLoading: breedsLoading, isError: breedsError } = useGetAllBreeds();
+  const { data: categories = [], isLoading: categoriesLoading, isError: categoriesError } = useGetAllPetCategories();
   const addVideo = useAddAdminVideo();
   const updateVideo = useUpdateAdminVideo();
   const removeVideo = useRemoveAdminVideo();
@@ -36,6 +36,7 @@ export default function AdminVideosPage() {
   });
 
   const isLoading = breedsLoading || categoriesLoading;
+  const isError = breedsError || categoriesError;
 
   const resetForm = () => {
     setFormData({
@@ -155,6 +156,21 @@ export default function AdminVideosPage() {
     );
   }
 
+  if (isError) {
+    return (
+      <AdminShell
+        title="Manage Video Links"
+        description="Add YouTube video links for breeds, categories, and health topics"
+        breadcrumbs={[{ label: 'Videos' }]}
+      >
+        <div className="text-center py-12">
+          <p className="text-destructive mb-4">Failed to load data</p>
+          <p className="text-sm text-muted-foreground">Please try refreshing the page</p>
+        </div>
+      </AdminShell>
+    );
+  }
+
   return (
     <AdminShell
       title="Manage Video Links"
@@ -182,6 +198,7 @@ export default function AdminVideosPage() {
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="e.g., How to Groom Your Golden Retriever"
                   required
+                  disabled={addVideo.isPending || updateVideo.isPending}
                 />
               </div>
 
@@ -193,6 +210,7 @@ export default function AdminVideosPage() {
                   onChange={(e) => setFormData({ ...formData, url: e.target.value })}
                   placeholder="https://www.youtube.com/watch?v=..."
                   required
+                  disabled={addVideo.isPending || updateVideo.isPending}
                 />
               </div>
 
@@ -204,12 +222,17 @@ export default function AdminVideosPage() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Brief description of the video"
                   rows={3}
+                  disabled={addVideo.isPending || updateVideo.isPending}
                 />
               </div>
 
               <div>
                 <Label>Category Type *</Label>
-                <Select value={formData.categoryType} onValueChange={(value: any) => setFormData({ ...formData, categoryType: value, categoryValue: '' })}>
+                <Select 
+                  value={formData.categoryType} 
+                  onValueChange={(value: any) => setFormData({ ...formData, categoryType: value, categoryValue: '' })}
+                  disabled={addVideo.isPending || updateVideo.isPending}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select category type" />
                   </SelectTrigger>
@@ -224,7 +247,11 @@ export default function AdminVideosPage() {
               {formData.categoryType === 'breed' && (
                 <div>
                   <Label>Select Breed *</Label>
-                  <Select value={formData.categoryValue} onValueChange={(value) => setFormData({ ...formData, categoryValue: value })}>
+                  <Select 
+                    value={formData.categoryValue} 
+                    onValueChange={(value) => setFormData({ ...formData, categoryValue: value })}
+                    disabled={addVideo.isPending || updateVideo.isPending}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a breed" />
                     </SelectTrigger>
@@ -246,7 +273,11 @@ export default function AdminVideosPage() {
               {formData.categoryType === 'category' && (
                 <div>
                   <Label>Select Pet Type *</Label>
-                  <Select value={formData.categoryValue} onValueChange={(value) => setFormData({ ...formData, categoryValue: value })}>
+                  <Select 
+                    value={formData.categoryValue} 
+                    onValueChange={(value) => setFormData({ ...formData, categoryValue: value })}
+                    disabled={addVideo.isPending || updateVideo.isPending}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a pet type" />
                     </SelectTrigger>
@@ -268,12 +299,18 @@ export default function AdminVideosPage() {
                     onChange={(e) => setFormData({ ...formData, categoryValue: e.target.value })}
                     placeholder="e.g., Vaccination, Grooming, Nutrition"
                     required
+                    disabled={addVideo.isPending || updateVideo.isPending}
                   />
                 </div>
               )}
 
               <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => { setDialogOpen(false); resetForm(); }}
+                  disabled={addVideo.isPending || updateVideo.isPending}
+                >
                   Cancel
                 </Button>
                 <Button type="submit" disabled={addVideo.isPending || updateVideo.isPending}>

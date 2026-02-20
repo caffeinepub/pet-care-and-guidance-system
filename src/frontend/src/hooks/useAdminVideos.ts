@@ -9,9 +9,16 @@ export function useGetVideosByCategory(category: VideoCategory, enabled: boolean
     queryKey: ['adminVideos', category],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      return actor.getVideosByCategory(category);
+      try {
+        return await actor.getVideosByCategory(category);
+      } catch (error: any) {
+        console.error('Failed to fetch videos by category:', error);
+        throw error;
+      }
     },
     enabled: !!actor && !actorFetching && enabled,
+    retry: 2,
+    staleTime: 30000,
   });
 }
 
@@ -22,14 +29,15 @@ export function useAddAdminVideo() {
   return useMutation({
     mutationFn: async (video: VideoLink) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.addAdminVideoLink(video);
+      try {
+        return await actor.addAdminVideoLink(video);
+      } catch (error: any) {
+        console.error('Failed to add video:', error);
+        throw new Error(error.message || 'Failed to add video. You may not have permission.');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminVideos'] });
-    },
-    onError: (error: any) => {
-      console.error('Failed to add video:', error);
-      throw new Error(error.message || 'Failed to add video. You may not have permission.');
     },
   });
 }
@@ -41,14 +49,15 @@ export function useUpdateAdminVideo() {
   return useMutation({
     mutationFn: async ({ videoId, updatedVideo }: { videoId: bigint; updatedVideo: VideoLink }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateAdminVideoLink(videoId, updatedVideo);
+      try {
+        return await actor.updateAdminVideoLink(videoId, updatedVideo);
+      } catch (error: any) {
+        console.error('Failed to update video:', error);
+        throw new Error(error.message || 'Failed to update video. You may not have permission.');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminVideos'] });
-    },
-    onError: (error: any) => {
-      console.error('Failed to update video:', error);
-      throw new Error(error.message || 'Failed to update video. You may not have permission.');
     },
   });
 }
@@ -60,14 +69,15 @@ export function useRemoveAdminVideo() {
   return useMutation({
     mutationFn: async (videoId: bigint) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.removeAdminVideoLink(videoId);
+      try {
+        return await actor.removeAdminVideoLink(videoId);
+      } catch (error: any) {
+        console.error('Failed to remove video:', error);
+        throw new Error(error.message || 'Failed to remove video. You may not have permission.');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminVideos'] });
-    },
-    onError: (error: any) => {
-      console.error('Failed to remove video:', error);
-      throw new Error(error.message || 'Failed to remove video. You may not have permission.');
     },
   });
 }

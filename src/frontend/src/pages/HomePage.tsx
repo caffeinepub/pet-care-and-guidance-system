@@ -80,8 +80,8 @@ export default function HomePage() {
             </div>
             <div className="relative">
               <img
-                src="/assets/generated/home-hero-illustration.dim_1600x800.png"
-                alt="Happy pets illustration"
+                src="/assets/generated/hero-home.dim_1200x600.png"
+                alt="Professional pet care and guidance platform"
                 className="w-full rounded-2xl shadow-2xl"
               />
             </div>

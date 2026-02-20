@@ -68,6 +68,8 @@ export default function BlobImageUploader({
 
       // Pass blob to parent
       onImageSelected(blob);
+      
+      toast.success('Image uploaded successfully');
     } catch (error) {
       console.error('Failed to upload image:', error);
       toast.error('Failed to upload image. Please try again.');
@@ -101,6 +103,7 @@ export default function BlobImageUploader({
             size="icon"
             className="absolute top-2 right-2"
             onClick={clearImage}
+            disabled={uploading}
           >
             <X className="h-4 w-4" />
           </Button>

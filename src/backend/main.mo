@@ -10,13 +10,9 @@ import Int "mo:core/Int";
 
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
-import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
-import Migration "migration";
+import MixinStorage "blob-storage/Mixin";
 
-// Persistent Actor State
-
-(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -27,13 +23,17 @@ actor {
   public type PetType = { #dog; #cat; #bird; #other : Text };
   type Timestamp = Int;
   type AgeRange = { #puppyKitten; #adult; #senior };
-  type VaccinationFrequency = { #everyYear; #everyThreeYears };
   type VideoId = Nat;
 
   type Gender = {
     #male;
     #female;
     #other : Text;
+  };
+
+  type VaccinationFrequency = {
+    #everyYear;
+    #everyThreeYears;
   };
 
   type Vaccination = {

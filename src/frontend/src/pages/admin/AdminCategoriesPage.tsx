@@ -14,7 +14,7 @@ import type { PetCategory } from '../../backend';
 import { ExternalBlob } from '../../backend';
 
 export default function AdminCategoriesPage() {
-  const { data: categories = [], isLoading } = useGetAllPetCategories();
+  const { data: categories = [], isLoading, isError, error } = useGetAllPetCategories();
   const addCategory = useAddPetCategory();
   const updateCategory = useUpdatePetCategory();
   const removeCategory = useRemovePetCategory();
@@ -106,6 +106,17 @@ export default function AdminCategoriesPage() {
     );
   }
 
+  if (isError) {
+    return (
+      <AdminShell title="Manage Pet Categories" description="Add, edit, or remove pet categories">
+        <div className="text-center py-12">
+          <p className="text-destructive mb-4">Failed to load categories</p>
+          <p className="text-sm text-muted-foreground">{error?.message || 'Unknown error'}</p>
+        </div>
+      </AdminShell>
+    );
+  }
+
   return (
     <AdminShell
       title="Manage Pet Categories"
@@ -136,6 +147,7 @@ export default function AdminCategoriesPage() {
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g., Dogs, Cats, Birds"
                   required
+                  disabled={addCategory.isPending || updateCategory.isPending}
                 />
               </div>
 
@@ -148,6 +160,7 @@ export default function AdminCategoriesPage() {
                   placeholder="Brief description of this pet category"
                   rows={4}
                   required
+                  disabled={addCategory.isPending || updateCategory.isPending}
                 />
               </div>
 
@@ -159,7 +172,12 @@ export default function AdminCategoriesPage() {
               />
 
               <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => { setDialogOpen(false); resetForm(); }}
+                  disabled={addCategory.isPending || updateCategory.isPending}
+                >
                   Cancel
                 </Button>
                 <Button type="submit" disabled={addCategory.isPending || updateCategory.isPending}>
@@ -196,7 +214,13 @@ export default function AdminCategoriesPage() {
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground line-clamp-3">{category.description}</p>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => handleEdit(category)} className="gap-2 flex-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleEdit(category)} 
+                    className="gap-2 flex-1"
+                    disabled={removeCategory.isPending}
+                  >
                     <Edit className="h-4 w-4" />
                     Edit
                   </Button>
@@ -208,7 +232,7 @@ export default function AdminCategoriesPage() {
                     className="gap-2 flex-1"
                   >
                     <Trash2 className="h-4 w-4" />
-                    Delete
+                    {removeCategory.isPending ? 'Deleting...' : 'Delete'}
                   </Button>
                 </div>
               </CardContent>

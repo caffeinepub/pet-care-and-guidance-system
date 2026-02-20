@@ -1,202 +1,57 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T19:15:44.324Z",
+  "generatedAt": "2026-02-20T17:26:37.549Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 11,
-    "implemented": 6,
+    "total": 3,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Fix the \"no breed or category available\" issue by ensuring Pets and Breeds always render a complete, working catalog: (1) when backend returns empty lists, frontend must reliably fall back to the existing static catalogs; (2) when backend has data, frontend must correctly map backend categories/breeds to routes so Cat/Dog/Bird/Other Pets and their pages remain reachable.",
+        "summary": "Debug and fix the admin button not appearing in the Navbar component on the deployed web version. The button should be visible to authenticated admin users in the header navigation.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/utils/catalogRouting.ts",
-          "frontend/src/pages/pets/PetsLandingPage.tsx",
-          "frontend/src/pages/pets/PetCategoryPage.tsx",
-          "frontend/src/pages/pets/BreedListPage.tsx",
-          "frontend/src/pages/pets/BreedDetailPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/utils/catalogRouting.ts",
-          "frontend/src/pages/pets/PetsLandingPage.tsx",
-          "frontend/src/pages/pets/PetCategoryPage.tsx",
-          "frontend/src/pages/pets/BreedListPage.tsx",
-          "frontend/src/pages/pets/BreedDetailPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-10",
-        "summary": "Ensure smart vaccination reminders support daily/weekly/monthly-style messaging (e.g., “Vaccination is due this month”, “Vaccination is tomorrow”) in the dashboard, based on each vaccination due date, and reminders update correctly over time.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/lib/vaccinationReminders.ts",
-          "frontend/src/pages/DashboardPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/lib/vaccinationReminders.ts",
-          "frontend/src/pages/DashboardPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-11",
-        "summary": "Implement a coherent modern, professional, friendly visual theme suitable for an academic Final Year Project and enforce it consistently across the entire app (home, pets, breeds, health, AI assistant, profile, dashboards, and admin), prioritizing readability, usability, and clear safety/disclaimer presentation.",
-        "status": "missing",
-        "plannedFiles": [
-          "frontend/src/index.css",
-          "frontend/tailwind.config.js",
-          "frontend/src/components/layout/AppLayout.tsx",
           "frontend/src/components/navigation/Navbar.tsx",
-          "frontend/src/components/navigation/Footer.tsx"
+          "frontend/src/hooks/useCallerRole.ts"
         ],
-        "matchedFiles": []
+        "matchedFiles": [
+          "frontend/src/components/navigation/Navbar.tsx",
+          "frontend/src/hooks/useCallerRole.ts"
+        ]
       },
       {
         "id": "REQ-2",
-        "summary": "Implement the full hierarchical Pets module structure requested by the user, including Other Pets subcategories: Small Mammals (Rabbit, Hamster, Guinea Pig, Gerbil, Mouse, Rat, Ferret, Chinchilla, Hedgehog), Aquatic Pets (Goldfish, Betta Fish, Guppy, Angelfish, Tetra, Koi Fish, Mollies & Platies, Shrimp, Snails), Reptiles (Turtle or Tortoise, Lizard types, Snake types, Chameleon, Skink), Amphibians (Frog, Toad, Salamander, Newt), Other Birds (Canary, Finch, Pigeon, Dove, Lovebird, Budgerigar, Quail), Insects and Arthropods (Ant farms, Stick insects, Praying mantis, Tarantula, Scorpion), Exotic Pets (Sugar Glider, Mini Pig, Raccoon, Fox, Skunk where legal), and Farm-Style Pets (Chicken, Duck, Goose, Miniature Goat). Each entry must have: name, clear description, care information, an image (or a safe placeholder), and related YouTube video links with proper titles.",
+        "summary": "Verify that the useCallerRole hook correctly identifies admin users in the production environment and returns the proper admin status.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/content/pets/petsCatalog.ts",
-          "frontend/src/pages/pets/PetCategoryPage.tsx",
-          "frontend/src/pages/pets/PetDetailPage.tsx",
-          "frontend/src/components/media/YouTubeEmbed.tsx"
+          "frontend/src/hooks/useCallerRole.ts",
+          "frontend/src/hooks/useActor.ts"
         ],
         "matchedFiles": [
-          "frontend/src/pages/pets/PetCategoryPage.tsx",
-          "frontend/src/pages/pets/PetDetailPage.tsx"
+          "frontend/src/hooks/useCallerRole.ts"
         ]
       },
       {
         "id": "REQ-3",
-        "summary": "Expand the Cat, Dog, and Parrot sections to include detailed breed pages for common breeds. Each breed page must display: breed description, temperament, diet, care tips, common health issues, images, and embedded recommended YouTube videos on the same page.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/content/pets/breedsCatalog.ts",
-          "frontend/src/pages/pets/BreedListPage.tsx",
-          "frontend/src/pages/pets/BreedDetailPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/content/pets/breedsCatalog.ts",
-          "frontend/src/pages/pets/BreedListPage.tsx",
-          "frontend/src/pages/pets/BreedDetailPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Ensure the Health & Care module contains detailed sections for grooming, nutrition, vaccination guidance, and emergency care, with health topic pages that explain symptoms, causes, prevention, and immediate care steps, and includes relevant titled YouTube video guides.",
-        "status": "missing",
-        "plannedFiles": [
-          "frontend/src/content/health/healthCatalog.ts",
-          "frontend/src/pages/health/HealthCareLandingPage.tsx",
-          "frontend/src/pages/health/HealthTopicPage.tsx"
-        ],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-5",
-        "summary": "Make the AI Assistant page a single, centralized experience accessible from both Home and Dashboard that provides three fully working AI options: (1) Behavioral and Health Prediction, (2) Emergency Care Assistance, and (3) Breed Identification using Image Upload. The assistant must be interactive and logical, asking follow-up questions for symptom reports and providing higher-risk vs lower-risk guidance, and must clearly state it does not replace a professional veterinarian.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/ai/AIAssistantPage.tsx",
-          "frontend/src/components/navigation/Navbar.tsx",
-          "frontend/src/pages/HomePage.tsx",
-          "frontend/src/pages/DashboardPage.tsx",
-          "frontend/src/components/ai/emergency/EmergencyTriageFlow.tsx",
-          "frontend/src/lib/ai/emergencyTriageRules.ts",
-          "frontend/src/components/ai/behavior/BehaviorHealthAssessment.tsx",
-          "frontend/src/components/ai/breed/BreedIdentifier.tsx",
-          "frontend/src/lib/ai/breedIdentification.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/DashboardPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-6",
-        "summary": "Update backend pet profile support to match the app scope (cats, dogs, birds, and other pets) by expanding the backend PetType beyond only cat/dog, and ensure all profile, pet management, vaccination, dashboard, and admin video/category logic continues working with the expanded pet types.",
+        "summary": "Ensure the backend isCallerAdmin method correctly identifies admin principals and returns the appropriate boolean value.",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
-      },
-      {
-        "id": "REQ-7",
-        "summary": "Implement role-based access control (Admin vs User) using secure backend role checks and protected routes. Admins must be redirected to an Admin Dashboard after login and can manage global content (categories, breeds, images, video links, health content) and user accounts (add/remove/disable). Regular users can only view content, use AI Assistant, and edit their own profile/pets/vaccinations/favorites; they must not be able to mutate global site data.",
-        "status": "missing",
-        "plannedFiles": [
-          "frontend/src/pages/auth/LoginPage.tsx",
-          "frontend/src/components/auth/RequireAdmin.tsx",
-          "frontend/src/components/navigation/Navbar.tsx",
-          "frontend/src/hooks/useCallerRole.ts"
-        ],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-8",
-        "summary": "Add admin tooling to manage Health & Care content (create/edit/delete health categories/topics and their videos) in a way consistent with existing admin content management patterns, while keeping Health browsing available to all users.",
-        "status": "missing",
-        "plannedFiles": [
-          "frontend/src/hooks/useHealthContentManagement.ts",
-          "frontend/src/pages/admin/AdminHealthPage.tsx",
-          "frontend/src/components/admin/AdminHealthContentManager.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/pages/admin/AdminLandingPage.tsx",
-          "frontend/src/pages/health/HealthCategoryPage.tsx",
-          "frontend/src/pages/health/HealthTopicPage.tsx"
-        ],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-9",
-        "summary": "Add admin functionality to add, remove, or disable user accounts, and enforce disabled accounts so they cannot access authenticated features (dashboard/profile/favorites/pet management).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/admin/AdminUsersPage.tsx",
-          "frontend/src/hooks/useUserManagement.ts",
-          "frontend/src/App.tsx",
-          "frontend/src/pages/admin/AdminLandingPage.tsx",
-          "frontend/src/components/auth/RequireAuth.tsx",
-          "frontend/src/pages/DashboardPage.tsx",
-          "frontend/src/pages/ProfilePage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/DashboardPage.tsx"
-        ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/public/assets/generated/app-logo.dim_512x512.png",
-    "frontend/public/assets/generated/category-banners.dim_1600x400.png",
-    "frontend/public/assets/generated/home-hero-illustration.dim_1600x800.png",
-    "frontend/public/assets/generated/placeholder-pet.dim_1200x800.png",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/admin/AdminVideoLinksManager.tsx",
-    "frontend/src/components/onboarding/DashboardPetOnboarding.tsx",
-    "frontend/src/components/profile/PetsManager.tsx",
-    "frontend/src/content/pets/breedsCatalog.ts",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/lib/vaccinationReminders.ts",
-    "frontend/src/pages/DashboardPage.tsx",
-    "frontend/src/pages/admin/AdminVideosPage.tsx",
-    "frontend/src/pages/pets/BreedDetailPage.tsx",
-    "frontend/src/pages/pets/BreedListPage.tsx",
-    "frontend/src/pages/pets/PetCategoryPage.tsx",
-    "frontend/src/pages/pets/PetDetailPage.tsx",
-    "frontend/src/pages/pets/PetsLandingPage.tsx",
-    "frontend/src/utils/catalogRouting.ts",
-    "frontend/src/utils/petTypeHelpers.ts",
+    "frontend/src/components/navigation/Navbar.tsx",
+    "frontend/src/hooks/useCallerRole.ts",
     "frontend/src/utils/urlParams.ts",
     "project_state.json",
     "scratch/component-selection.json",

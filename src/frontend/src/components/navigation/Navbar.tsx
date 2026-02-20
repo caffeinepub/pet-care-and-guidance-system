@@ -17,8 +17,17 @@ export default function Navbar() {
   const isAuthenticated = !!identity;
   const isLoggingIn = loginStatus === 'logging-in';
 
-  // Only show admin link when we've confirmed the user is an admin (after role check completes)
+  // Show admin link when authenticated, role check is complete, and user is admin
   const showAdminLink = isAuthenticated && !roleLoading && roleFetched && isAdmin;
+
+  // Log for debugging
+  console.log('[Navbar] Admin link state:', {
+    isAuthenticated,
+    roleLoading,
+    roleFetched,
+    isAdmin,
+    showAdminLink,
+  });
 
   const handleAuth = async () => {
     if (isAuthenticated) {
@@ -39,13 +48,12 @@ export default function Navbar() {
     }
   };
 
-  const navLinks = [
+  const mainNavLinks = [
     { to: '/', label: 'Home' },
     { to: '/pets', label: 'Pets' },
     { to: '/health', label: 'Health & Care' },
     { to: '/ai-assistant', label: 'AI Assistant' },
     ...(isAuthenticated ? [{ to: '/dashboard', label: 'Dashboard' }, { to: '/profile', label: 'Profile' }] : []),
-    ...(showAdminLink ? [{ to: '/admin', label: 'Admin', icon: Shield }] : []),
   ];
 
   return (
@@ -59,17 +67,26 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden items-center gap-6 md:flex">
-            {navLinks.map((link) => (
+            {mainNavLinks.map((link) => (
               <Link
                 key={link.to}
                 to={link.to}
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground flex items-center gap-1"
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
                 activeProps={{ className: 'text-foreground' }}
               >
-                {link.icon && <link.icon className="h-4 w-4" />}
                 {link.label}
               </Link>
             ))}
+            {showAdminLink && (
+              <Link
+                to="/admin"
+                className="flex items-center gap-1.5 rounded-md bg-admin-accent px-3 py-1.5 text-sm font-semibold text-admin-accent-foreground transition-colors hover:bg-admin-accent/90"
+                activeProps={{ className: 'bg-admin-accent/80' }}
+              >
+                <Shield className="h-4 w-4" />
+                Admin
+              </Link>
+            )}
             <Button onClick={handleAuth} disabled={isLoggingIn} variant={isAuthenticated ? 'outline' : 'default'}>
               {isLoggingIn ? 'Logging in...' : isAuthenticated ? 'Logout' : 'Login'}
             </Button>
@@ -85,18 +102,28 @@ export default function Navbar() {
         {mobileMenuOpen && (
           <div className="border-t py-4 md:hidden">
             <div className="flex flex-col gap-4">
-              {navLinks.map((link) => (
+              {mainNavLinks.map((link) => (
                 <Link
                   key={link.to}
                   to={link.to}
-                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground flex items-center gap-2"
+                  className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
                   activeProps={{ className: 'text-foreground' }}
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  {link.icon && <link.icon className="h-4 w-4" />}
                   {link.label}
                 </Link>
               ))}
+              {showAdminLink && (
+                <Link
+                  to="/admin"
+                  className="flex items-center gap-2 rounded-md bg-admin-accent px-3 py-2 text-sm font-semibold text-admin-accent-foreground transition-colors hover:bg-admin-accent/90"
+                  activeProps={{ className: 'bg-admin-accent/80' }}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Shield className="h-4 w-4" />
+                  Admin Panel
+                </Link>
+              )}
               <Button onClick={handleAuth} disabled={isLoggingIn} variant={isAuthenticated ? 'outline' : 'default'} className="w-full">
                 {isLoggingIn ? 'Logging in...' : isAuthenticated ? 'Logout' : 'Login'}
               </Button>

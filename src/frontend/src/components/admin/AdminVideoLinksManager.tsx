@@ -40,7 +40,7 @@ export default function AdminVideoLinksManager({
     }
   }
 
-  const { data: videos = [], isLoading } = useGetVideosByCategory(
+  const { data: videos = [], isLoading, isError } = useGetVideosByCategory(
     videoCategory || { __kind__: 'breed', breed: '' },
     !!selectedItem && !!videoCategory
   );
@@ -128,6 +128,10 @@ export default function AdminVideoLinksManager({
             <div className="text-center py-8">
               <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-admin-accent border-t-transparent mx-auto"></div>
               <p className="text-admin-muted">Loading videos...</p>
+            </div>
+          ) : isError ? (
+            <div className="text-center py-8">
+              <p className="text-destructive">Failed to load videos</p>
             </div>
           ) : displayedVideos.length === 0 ? (
             <div className="text-center py-12 border-2 border-dashed rounded-lg bg-admin-card">

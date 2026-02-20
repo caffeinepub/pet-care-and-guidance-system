@@ -1,365 +1,49 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Pet Care System — Frontend catalog restoration, expanded content, AI assistant improvements, RBAC UX, admin tooling, reminders, and unified theme",
+  "title": "Fix admin panel button visibility in production",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Ensure Pets and Breeds always render a complete catalog by adding robust backend→static fallback and stable route/slug mapping for categories and breeds.",
+      "summary": "Debug and fix the admin button not appearing in the Navbar component on the deployed web version",
       "acceptanceCriteria": [
-        "Opening /pets shows Cats, Dogs, Birds, and Other Pets even when the backend contains zero categories.",
-        "Opening /pets/cat, /pets/dog, /pets/bird, and /pets/other loads content without showing empty-state messaging like \"no breed or category available\".",
-        "Breed list and breed detail pages render from backend data when present, otherwise render from the static catalogs without errors.",
-        "No existing working routes/pages regress (Home, Auth, Dashboard, Profile, Health, AI Assistant, Admin)."
+        "Admin button is visible in the header navigation when logged in as an admin user",
+        "Admin button correctly links to the admin panel",
+        "Admin button is hidden for non-admin users",
+        "Button displays consistently across desktop and mobile viewports"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/utils/catalogRouting.ts",
-          "operation": "create",
-          "description": "Add shared helpers to normalize category/breed route slugs and map common backend names (e.g., \"Cats\"→\"cat\", \"Other Pets\"→\"other\") to keep Cat/Dog/Bird/Other routes reachable even when backend data shape/names differ."
+          "path": "frontend/src/components/navigation/Navbar.tsx",
+          "operation": "modify",
+          "description": "Debug and fix the admin button visibility logic. Verify that the useCallerRole hook is properly integrated and that the isAdmin state correctly reflects the backend admin status. Ensure the admin link is rendered in both desktop and mobile navigation when isAdmin is true. Add console logging during development to track the isAdmin state and loading conditions. Verify the Link component correctly navigates to /admin when clicked."
         },
         {
-          "path": "frontend/src/pages/pets/PetsLandingPage.tsx",
+          "path": "frontend/src/hooks/useCallerRole.ts",
           "operation": "modify",
-          "description": "Use the catalog routing helpers to render the four core categories consistently; if backend returns an empty list, reliably fall back to the static category list without showing unavailable/empty messaging."
-        },
-        {
-          "path": "frontend/src/pages/pets/PetCategoryPage.tsx",
-          "operation": "modify",
-          "description": "Harden category lookup by using normalized slug matching against backend categories and falling back to frontend static catalog data; ensure /pets/cat|dog|bird|other never becomes unreachable due to backend naming or empties."
-        },
-        {
-          "path": "frontend/src/pages/pets/BreedListPage.tsx",
-          "operation": "modify",
-          "description": "Ensure breed list selection is stable: prefer backend breeds when present; otherwise use the static catalog. Normalize breed IDs (slugify name) so routes remain consistent and do not break when backend data exists."
-        },
-        {
-          "path": "frontend/src/pages/pets/BreedDetailPage.tsx",
-          "operation": "modify",
-          "description": "Match backend breeds and static breeds via normalized slug mapping (backend name→slug); ensure fallback to static breed info works when backend is empty and prevents any empty-state/unavailable messaging."
+          "description": "Debug and verify the useCallerRole hook implementation. Ensure the query properly waits for both actor initialization and authentication state. Verify the 5-minute staleTime is appropriate for production use. Add error boundary handling for failed admin status checks. Ensure the hook returns consistent loading states that prevent premature rendering decisions in the Navbar. Consider adding retry logic for transient network failures in production environments."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Implement the full hierarchical Pets module (including required Other Pets subcategories) with detail pages containing descriptions, care info, images/placeholders, and titled YouTube links.",
+      "summary": "Verify that the useCallerRole hook correctly identifies admin users in the production environment",
       "acceptanceCriteria": [
-        "/pets/other shows the required subcategory groups and allows navigating into each group to view the listed pets.",
-        "Each listed pet detail page shows: name, description, care bullets, an image (or placeholder), and at least one YouTube link with a non-empty title.",
-        "Navigation follows a clear hierarchy (Landing → Category → Subcategory (when applicable) → Pet detail)."
+        "useCallerRole hook successfully fetches admin status from backend",
+        "Hook handles loading and error states appropriately",
+        "Admin status is cached correctly with 5-minute TTL",
+        "Hook works consistently in development and production environments"
       ],
       "file_operations": [
-        {
-          "path": "frontend/src/content/pets/petsCatalog.ts",
-          "operation": "modify",
-          "description": "Expand the static Other Pets catalog to include all required subcategory groups and exact pet entries (Small Mammals, Aquatic Pets, Reptiles, Amphibians, Other Birds, Insects and Arthropods, Exotic Pets, Farm-Style Pets), ensuring each pet has name, clear description, care bullets, and at least one titled YouTube link."
-        },
-        {
-          "path": "frontend/src/pages/pets/PetCategoryPage.tsx",
-          "operation": "modify",
-          "description": "Enhance /pets/other to clearly present the full required subcategory hierarchy and improve navigation affordances from category → subcategory → pet detail (without introducing new routes beyond the existing /pets/$category/$pet)."
-        },
-        {
-          "path": "frontend/src/pages/pets/PetDetailPage.tsx",
-          "operation": "modify",
-          "description": "Render a pet image when provided by the static catalog and otherwise fall back to the generated placeholder image at frontend/public/assets/generated/placeholder-pet.dim_1200x800.png; ensure at least one titled YouTube link renders for every pet."
-        },
-        {
-          "path": "frontend/src/components/media/YouTubeEmbed.tsx",
-          "operation": "modify",
-          "description": "Ensure embedding logic gracefully handles standard YouTube URL variants used in the expanded catalogs and consistently displays non-empty titles above embeds. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Expand Cat, Dog, and Parrot breed catalogs and ensure breed pages show required sections and embedded YouTube videos.",
-      "acceptanceCriteria": [
-        "Cats and Dogs have multiple working breed detail pages reachable from their breed list pages.",
-        "Birds includes a Parrot breed set with multiple working breed detail pages (e.g., common parrot breeds) reachable from the Birds breed list.",
-        "Each breed detail page embeds YouTube videos (not just links) and shows the required sections (temperament, diet, care tips, common health issues)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/content/pets/breedsCatalog.ts",
-          "operation": "modify",
-          "description": "Add static breed entries for Dogs and Birds (including a Parrot breed set) with required fields (description, temperament, diet, care tips, common health issues, image URL or placeholder reference, and titled YouTube videos)."
-        },
-        {
-          "path": "frontend/src/pages/pets/BreedListPage.tsx",
-          "operation": "modify",
-          "description": "Ensure Dogs and Birds (Parrot set) show multiple breed cards and link to the correct detail routes using normalized slugs; replace legacy placeholder paths with the generated placeholder image at frontend/public/assets/generated/placeholder-pet.dim_1200x800.png."
-        },
-        {
-          "path": "frontend/src/pages/pets/BreedDetailPage.tsx",
-          "operation": "modify",
-          "description": "Guarantee all required sections render for static breeds and embed recommended YouTube videos on the same page using the existing YouTubeEmbed component; replace legacy placeholder fallbacks with frontend/public/assets/generated/placeholder-pet.dim_1200x800.png."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Ensure Health & Care contains detailed grooming, nutrition, vaccination, and emergency topic pages with symptoms/causes/prevention/immediate care and titled YouTube guides, with emergency labeling and safety notice.",
-      "acceptanceCriteria": [
-        "/health shows the key modules (grooming, nutrition, vaccination guidance, emergency care) and navigates to category and topic pages.",
-        "Each health topic page displays symptoms, causes, prevention, immediate care steps, and shows at least one YouTube guide with a proper title.",
-        "Emergency topics are visually labeled as urgent/emergency and include a clear safety notice to contact a veterinarian when appropriate."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/content/health/healthCatalog.ts",
-          "operation": "modify",
-          "description": "Expand static health categories/topics with richer content for grooming, nutrition, vaccination guidance, and emergency care; ensure every topic includes symptoms, causes, prevention, immediate care steps, and at least one titled YouTube guide; mark emergency topics with isEmergency."
-        },
-        {
-          "path": "frontend/src/pages/health/HealthCareLandingPage.tsx",
-          "operation": "modify",
-          "description": "Ensure the landing page clearly presents the four required modules and reinforces safety/educational context in a consistent, readable way (without adding new routes)."
-        },
-        {
-          "path": "frontend/src/pages/health/HealthTopicPage.tsx",
-          "operation": "modify",
-          "description": "Make emergency topics visually prominent (urgent styling) and ensure the safety notice is consistently rendered; ensure video titles are displayed and embeds render reliably."
-        }
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "summary": "Make AI Assistant a single centralized experience linked from Home and Dashboard with three working rule-based options (assessment, emergency triage, image-based breed ID) including follow-ups, risk stratification, and disclaimers.",
-      "acceptanceCriteria": [
-        "AI Assistant is reachable via /ai-assistant from the global navbar and via prominent links/buttons on Home and Dashboard.",
-        "Emergency Care Assistance supports an interactive flow that asks follow-up questions after the user indicates a symptom such as vomiting and adjusts urgency based on answers (e.g., frequent vomiting triggers clear “seek veterinary care immediately” messaging).",
-        "Behavioral and Health Prediction produces a structured assessment including severity/concern level and recommendations.",
-        "Breed Identification accepts an uploaded image, returns predicted breed information with an explanation and guidance, and handles non-matching images gracefully with an “uncertain” result and next steps.",
-        "All AI outputs include a visible disclaimer that the tool is educational and not a substitute for a veterinarian."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/ai/AIAssistantPage.tsx",
-          "operation": "modify",
-          "description": "Ensure the AI Assistant page presents the three required options clearly (Behavioral & Health Prediction, Emergency Care Assistance, Breed Identification with image upload) and that the educational/veterinarian disclaimer is consistently visible."
-        },
-        {
-          "path": "frontend/src/components/navigation/Navbar.tsx",
-          "operation": "modify",
-          "description": "Add/verify a prominent global navigation link to /ai-assistant and ensure it remains visible across responsive breakpoints. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/HomePage.tsx",
-          "operation": "modify",
-          "description": "Ensure Home contains a prominent call-to-action linking to /ai-assistant and uses the generated hero illustration at frontend/public/assets/generated/home-hero-illustration.dim_1600x800.png."
-        },
-        {
-          "path": "frontend/src/pages/DashboardPage.tsx",
-          "operation": "modify",
-          "description": "Ensure Dashboard includes a prominent quick-action linking to /ai-assistant and that AI guidance copy remains consistent with the educational disclaimer."
-        },
-        {
-          "path": "frontend/src/components/ai/emergency/EmergencyTriageFlow.tsx",
-          "operation": "modify",
-          "description": "Improve the interactive triage UX to reliably ask follow-up questions for key symptom reports (including vomiting) and clearly vary urgency messaging between lower-risk and higher-risk outcomes using the existing rules engine."
-        },
-        {
-          "path": "frontend/src/lib/ai/emergencyTriageRules.ts",
-          "operation": "modify",
-          "description": "Refine rule-based emergency scoring/thresholds so symptom frequency/duration and danger signs reliably elevate to urgent guidance and produce consistent, explainable outputs."
-        },
-        {
-          "path": "frontend/src/components/ai/behavior/BehaviorHealthAssessment.tsx",
-          "operation": "modify",
-          "description": "Ensure the assessment output is structured (severity/concern level + actionable recommendations) and remains fully local/rule-based per constraints."
-        },
-        {
-          "path": "frontend/src/components/ai/breed/BreedIdentifier.tsx",
-          "operation": "modify",
-          "description": "Ensure image upload flow handles non-matching/low-confidence cases with an explicit “uncertain” result and next steps; keep processing local and rule-based."
-        },
-        {
-          "path": "frontend/src/lib/ai/breedIdentification.ts",
-          "operation": "modify",
-          "description": "Improve token/synonym matching and confidence calculation for breed identification to support expanded cat/dog/parrot breed sets and produce clearer explanations for uncertain results."
-        }
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "summary": "Enforce Admin vs User RBAC in the UI with protected admin routes, role-based redirects after login, and conditional rendering of admin controls.",
-      "acceptanceCriteria": [
-        "Admin-only backend methods (add/update/remove categories/breeds/videos and any user-management actions) trap or reject for non-admin callers.",
-        "Admin routes/pages are protected so non-admin users see an access denied state and cannot reach admin tools by URL entry.",
-        "After login, admins are routed to the Admin dashboard; regular users are routed to the user dashboard (or last intended non-admin page).",
-        "Admin features/controls are conditionally rendered so regular users do not see admin actions in the UI.",
-        "System has a defined mechanism to provision exactly three initial admin accounts (e.g., controller-only bootstrap or fixed principal allowlist) without granting admin to arbitrary users."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/auth/LoginPage.tsx",
-          "operation": "modify",
-          "description": "Adjust post-login routing to redirect admins to /admin and regular users to /dashboard (or last intended non-admin page), using the existing role query mechanisms from the authorization setup. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/auth/RequireAdmin.tsx",
-          "operation": "modify",
-          "description": "Harden admin route guarding UX: ensure non-admin users always see a clear access denied state and cannot access admin pages by direct URL. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/navigation/Navbar.tsx",
-          "operation": "modify",
-          "description": "Ensure the Admin link is only rendered for admin users and that role-based navigation is consistent on desktop/mobile. Verify the component's usage instructions before implementing."
-        },
         {
           "path": "frontend/src/hooks/useCallerRole.ts",
           "operation": "modify",
-          "description": "Improve role state handling for consistent UI gating (admin vs user vs guest) and reduce role-check flicker when actor initializes. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "summary": "Add admin UI tooling to manage Health & Care content (create/edit/delete categories/topics and videos) consistent with existing admin patterns, while keeping Health browsing public.",
-      "acceptanceCriteria": [
-        "Admin can create/update/delete health categories/topics and manage their titled video links.",
-        "Health pages reflect admin-managed updates after refresh without requiring code changes.",
-        "Non-admin users can browse Health & Care content but cannot change it."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useHealthContentManagement.ts",
-          "operation": "create",
-          "description": "Create React Query hooks for fetching and mutating health content via backend actor (list, add, update, remove) and for mapping backend health content into the UI view models used by Health pages."
+          "description": "Verify the isCallerAdmin backend method is called correctly with proper actor instance. Ensure the enabled flag properly gates the query until actor and authentication are ready. Verify the query returns consistent results across page refreshes and navigation. Add fallback handling for edge cases where the backend call might fail silently. Ensure the 5-minute cache invalidation works correctly and doesn't cause stale admin status in production."
         },
         {
-          "path": "frontend/src/pages/admin/AdminHealthPage.tsx",
-          "operation": "create",
-          "description": "Create an admin page (using existing admin layout patterns) to create/edit/delete health categories/topics and manage their titled YouTube links. Use shadcn-ui form/table components to match existing admin UX. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/admin/AdminHealthContentManager.tsx",
-          "operation": "create",
-          "description": "Create a reusable admin manager component for Health categories/topics, consistent with existing AdminBreeds/AdminCategories patterns, including validation for English-only titles/descriptions and non-empty video titles. Use shadcn-ui components. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/hooks/useActor.ts",
           "operation": "modify",
-          "description": "Wire the new /admin/health route into the router under the existing RequireAdmin guard to avoid orphan pages and keep public browsing unchanged."
-        },
-        {
-          "path": "frontend/src/pages/admin/AdminLandingPage.tsx",
-          "operation": "modify",
-          "description": "Add a navigation card/link to the new Health content management area so admins can discover and reach the tooling."
-        },
-        {
-          "path": "frontend/src/pages/health/HealthCategoryPage.tsx",
-          "operation": "modify",
-          "description": "Update Health browsing to prefer backend-managed health content when available (after refresh) and otherwise fall back to the existing static healthCatalog."
-        },
-        {
-          "path": "frontend/src/pages/health/HealthTopicPage.tsx",
-          "operation": "modify",
-          "description": "Update topic lookup to support backend-managed topics (while preserving static fallback), and keep emergency labeling and safety notice behavior consistent."
-        }
-      ]
-    },
-    {
-      "id": "REQ-9",
-      "summary": "Add admin UI for disabling/enabling users and enforce disabled-user UX so disabled accounts cannot use authenticated features and see a clear message.",
-      "acceptanceCriteria": [
-        "Admin can list user accounts and mark an account as disabled/enabled.",
-        "Disabled users cannot call user-only backend methods and are shown a clear UI message indicating the account is disabled.",
-        "Admin can re-enable a previously disabled user."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/admin/AdminUsersPage.tsx",
-          "operation": "create",
-          "description": "Create an admin-only user management UI that supports disabling/enabling accounts. If full user listing is not available from backend, provide a safe admin workflow (e.g., search by Principal) to view and manage a user account state. Use shadcn-ui components for consistent admin styling. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useUserManagement.ts",
-          "operation": "create",
-          "description": "Add hooks for admin user management actions (enable/disable, fetch user profile by Principal where supported) with consistent error handling for authorization failures."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Wire /admin/users under RequireAdmin so the user-management tooling is reachable and protected."
-        },
-        {
-          "path": "frontend/src/pages/admin/AdminLandingPage.tsx",
-          "operation": "modify",
-          "description": "Add a navigation card/link to Admin user management."
-        },
-        {
-          "path": "frontend/src/components/auth/RequireAuth.tsx",
-          "operation": "modify",
-          "description": "Detect and handle disabled-account failures gracefully (e.g., backend rejection message) by showing a clear disabled-account state and preventing access to authenticated routes like dashboard/profile/favorites/pet management. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/DashboardPage.tsx",
-          "operation": "modify",
-          "description": "Ensure dashboard handles disabled-account errors with a clear message rather than generic failure messaging, and avoids rendering authenticated features when the account is disabled."
-        },
-        {
-          "path": "frontend/src/pages/ProfilePage.tsx",
-          "operation": "modify",
-          "description": "Ensure profile and its tabs handle disabled-account errors with a clear message and prevent mutations when disabled."
-        }
-      ]
-    },
-    {
-      "id": "REQ-10",
-      "summary": "Improve vaccination reminders to support daily/weekly/monthly-style messaging and ensure consistent multi-pet reminder output that excludes completed vaccinations.",
-      "acceptanceCriteria": [
-        "Dashboard shows reminder messages for upcoming vaccinations with at least: due today, due tomorrow, due this week, due this month, and overdue states.",
-        "Reminders exclude vaccinations marked completed.",
-        "Reminder output is consistent across refreshes and for multiple pets/vaccinations."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/lib/vaccinationReminders.ts",
-          "operation": "modify",
-          "description": "Update reminder calculations to return stable, user-friendly messaging buckets (overdue, due today, due tomorrow, due this week, due this month, later) and variants for UI emphasis."
-        },
-        {
-          "path": "frontend/src/pages/DashboardPage.tsx",
-          "operation": "modify",
-          "description": "Ensure reminder rendering uses the updated reminder utility outputs consistently across multiple pets/vaccinations and continues to exclude completed vaccinations."
-        }
-      ]
-    },
-    {
-      "id": "REQ-11",
-      "summary": "Apply a coherent modern, professional, friendly theme across the app with consistent typography, spacing, cards, and prominent safety/disclaimer presentation.",
-      "acceptanceCriteria": [
-        "UI is responsive across mobile/tablet/desktop for main navigation and primary pages.",
-        "Safety disclaimers and emergency guidance are visually prominent (but not intrusive) and readable.",
-        "Typography, spacing, and card/layout styling are consistent across modules and admin vs user areas."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/index.css",
-          "operation": "modify",
-          "description": "Refine global theme tokens/utilities (typography scale, spacing rhythm, card styles, emphasis styles for warnings/emergency, focus states) to enforce a consistent modern look across user and admin areas."
-        },
-        {
-          "path": "frontend/tailwind.config.js",
-          "operation": "modify",
-          "description": "Adjust Tailwind theme extensions (colors, radii, shadows, container sizing) to support the updated professional friendly theme consistently."
-        },
-        {
-          "path": "frontend/src/components/layout/AppLayout.tsx",
-          "operation": "modify",
-          "description": "Ensure consistent page container sizing/spacing and layout structure across modules, including admin vs user areas."
-        },
-        {
-          "path": "frontend/src/components/navigation/Navbar.tsx",
-          "operation": "modify",
-          "description": "Apply consistent responsive navbar styling and wire the generated logo asset at frontend/public/assets/generated/app-logo.dim_512x512.png into the brand area. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/navigation/Footer.tsx",
-          "operation": "modify",
-          "description": "Ensure global disclaimer/safety text remains readable and consistently styled across the app, aligned with the updated theme."
+          "description": "Verify the actor initialization timing and ensure it completes before dependent hooks like useCallerRole execute queries. Check that identity changes properly trigger actor recreation and dependent query invalidation. Ensure the isFetching state accurately reflects actor readiness. Verify that the backend canister ID and authentication flow work correctly in production deployment environments."
         }
       ]
     }

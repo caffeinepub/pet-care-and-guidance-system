@@ -17,8 +17,8 @@ import { ExternalBlob } from '../../backend';
 
 export default function AdminBreedsPage() {
   const navigate = useNavigate();
-  const { data: breeds = [], isLoading: breedsLoading } = useGetAllBreeds();
-  const { data: categories = [], isLoading: categoriesLoading } = useGetAllPetCategories();
+  const { data: breeds = [], isLoading: breedsLoading, isError: breedsError, error: breedsErrorMsg } = useGetAllBreeds();
+  const { data: categories = [], isLoading: categoriesLoading, isError: categoriesError } = useGetAllPetCategories();
   const addBreed = useAddBreed();
   const updateBreed = useUpdateBreed();
   const removeBreed = useRemoveBreed();
@@ -32,6 +32,9 @@ export default function AdminBreedsPage() {
     image: null as ExternalBlob | null,
     videos: [] as Array<{ title: string; url: string }>,
   });
+
+  const isLoading = breedsLoading || categoriesLoading;
+  const isError = breedsError || categoriesError;
 
   const resetForm = () => {
     setFormData({
@@ -99,17 +102,13 @@ export default function AdminBreedsPage() {
   };
 
   const handleOpenDialog = () => {
-    if (categories.length === 0) {
-      toast.error('Please create at least one category first');
-      return;
-    }
     resetForm();
     setDialogOpen(true);
   };
 
-  if (breedsLoading || categoriesLoading) {
+  if (isLoading) {
     return (
-      <AdminShell title="Manage Breeds" description="Add, edit, or remove breeds">
+      <AdminShell title="Manage Breeds" description="Add, edit, or remove breed information">
         <div className="text-center py-12">
           <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-admin-accent border-t-transparent mx-auto"></div>
           <p className="text-admin-muted">Loading breeds...</p>
@@ -118,13 +117,24 @@ export default function AdminBreedsPage() {
     );
   }
 
-  return (
-    <AdminShell
-      title="Manage Breeds"
-      description="Add, edit, or remove breeds"
-      breadcrumbs={[{ label: 'Breeds' }]}
-    >
-      {categories.length === 0 ? (
+  if (isError) {
+    return (
+      <AdminShell title="Manage Breeds" description="Add, edit, or remove breed information">
+        <div className="text-center py-12">
+          <p className="text-destructive mb-4">Failed to load breeds</p>
+          <p className="text-sm text-muted-foreground">{breedsErrorMsg?.message || 'Unknown error'}</p>
+        </div>
+      </AdminShell>
+    );
+  }
+
+  if (categories.length === 0) {
+    return (
+      <AdminShell
+        title="Manage Breeds"
+        description="Add, edit, or remove breed information"
+        breadcrumbs={[{ label: 'Breeds' }]}
+      >
         <div className="text-center py-12 border-2 border-dashed rounded-lg bg-admin-card">
           <AlertCircle className="h-12 w-12 text-amber-600 mx-auto mb-4" />
           <p className="text-lg font-medium mb-2">No Categories Available</p>
@@ -138,129 +148,153 @@ export default function AdminBreedsPage() {
             Go to Categories
           </Button>
         </div>
-      ) : (
-        <>
-          <div className="flex justify-end mb-6">
-            <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
-              <DialogTrigger asChild>
-                <Button
-                  onClick={handleOpenDialog}
-                  className="gap-2 bg-admin-accent hover:bg-admin-accent/90 text-white"
+      </AdminShell>
+    );
+  }
+
+  return (
+    <AdminShell
+      title="Manage Breeds"
+      description="Add, edit, or remove breed information"
+      breadcrumbs={[{ label: 'Breeds' }]}
+    >
+      <div className="flex justify-end mb-6">
+        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
+          <DialogTrigger asChild>
+            <Button
+              onClick={handleOpenDialog}
+              className="gap-2 bg-admin-accent hover:bg-admin-accent/90 text-white"
+            >
+              <Plus className="h-4 w-4" />
+              Add Breed
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{editingBreed ? 'Edit Breed' : 'Add New Breed'}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <Label htmlFor="name">Breed Name *</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g., Golden Retriever, Persian Cat"
+                  required
+                  disabled={addBreed.isPending || updateBreed.isPending}
+                />
+              </div>
+
+              <div>
+                <Label>Category *</Label>
+                <Select 
+                  value={formData.category} 
+                  onValueChange={(value) => setFormData({ ...formData, category: value })}
+                  disabled={addBreed.isPending || updateBreed.isPending}
                 >
-                  <Plus className="h-4 w-4" />
-                  Add Breed
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent className="z-[100]">
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.name} value={cat.name}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="description">Description *</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Brief description of this breed"
+                  rows={4}
+                  required
+                  disabled={addBreed.isPending || updateBreed.isPending}
+                />
+              </div>
+
+              <BlobImageUploader
+                label="Breed Image"
+                currentImageUrl={formData.image?.getDirectURL()}
+                onImageSelected={(blob) => setFormData({ ...formData, image: blob })}
+                onImageCleared={() => setFormData({ ...formData, image: null })}
+              />
+
+              <div className="flex gap-2 justify-end">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => { setDialogOpen(false); resetForm(); }}
+                  disabled={addBreed.isPending || updateBreed.isPending}
+                >
+                  Cancel
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>{editingBreed ? 'Edit Breed' : 'Add New Breed'}</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div>
-                    <Label htmlFor="name">Breed Name *</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="e.g., Golden Retriever, Persian Cat"
-                      required
-                    />
-                  </div>
+                <Button type="submit" disabled={addBreed.isPending || updateBreed.isPending}>
+                  {addBreed.isPending || updateBreed.isPending ? 'Saving...' : 'Save Breed'}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
 
-                  <div>
-                    <Label>Category *</Label>
-                    <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                      <SelectContent className="z-[100]">
-                        {categories.map((cat) => (
-                          <SelectItem key={cat.name} value={cat.name}>
-                            {cat.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="description">Description *</Label>
-                    <Textarea
-                      id="description"
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      placeholder="Brief description of this breed"
-                      rows={4}
-                      required
-                    />
-                  </div>
-
-                  <BlobImageUploader
-                    label="Breed Image"
-                    currentImageUrl={formData.image?.getDirectURL()}
-                    onImageSelected={(blob) => setFormData({ ...formData, image: blob })}
-                    onImageCleared={() => setFormData({ ...formData, image: null })}
+      {breeds.length === 0 ? (
+        <div className="text-center py-12 border-2 border-dashed rounded-lg bg-admin-card">
+          <Dog className="h-12 w-12 text-admin-muted mx-auto mb-4" />
+          <p className="text-admin-muted">No breeds yet. Click "Add Breed" to create one.</p>
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {breeds.map((breed) => (
+            <Card key={breed.name} className="admin-card">
+              <CardHeader>
+                {breed.image && (
+                  <img
+                    src={breed.image.getDirectURL()}
+                    alt={breed.name}
+                    className="w-full h-48 object-cover rounded-lg mb-4"
                   />
-
-                  <div className="flex gap-2 justify-end">
-                    <Button type="button" variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>
-                      Cancel
-                    </Button>
-                    <Button type="submit" disabled={addBreed.isPending || updateBreed.isPending}>
-                      {addBreed.isPending || updateBreed.isPending ? 'Saving...' : 'Save Breed'}
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          {breeds.length === 0 ? (
-            <div className="text-center py-12 border-2 border-dashed rounded-lg bg-admin-card">
-              <Dog className="h-12 w-12 text-admin-muted mx-auto mb-4" />
-              <p className="text-admin-muted">No breeds yet. Click "Add Breed" to create one.</p>
-            </div>
-          ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {breeds.map((breed) => (
-                <Card key={breed.name} className="admin-card">
-                  <CardHeader>
-                    {breed.image && (
-                      <img
-                        src={breed.image.getDirectURL()}
-                        alt={breed.name}
-                        className="w-full h-48 object-cover rounded-lg mb-4"
-                      />
-                    )}
-                    <CardTitle className="flex items-center gap-2">
-                      <Dog className="h-5 w-5 text-admin-accent" />
-                      {breed.name}
-                    </CardTitle>
-                    <p className="text-sm text-admin-muted">Category: {breed.category}</p>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground line-clamp-3">{breed.description}</p>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => handleEdit(breed)} className="gap-2 flex-1">
-                        <Edit className="h-4 w-4" />
-                        Edit
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(breed.name)}
-                        className="gap-2 flex-1"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Delete
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </>
+                )}
+                <CardTitle className="flex items-center gap-2">
+                  <Dog className="h-5 w-5 text-admin-accent" />
+                  {breed.name}
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">Category: {breed.category}</p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground line-clamp-3">{breed.description}</p>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleEdit(breed)} 
+                    className="gap-2 flex-1"
+                    disabled={removeBreed.isPending}
+                  >
+                    <Edit className="h-4 w-4" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleDelete(breed.name)}
+                    disabled={removeBreed.isPending}
+                    className="gap-2 flex-1"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {removeBreed.isPending ? 'Deleting...' : 'Delete'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       )}
     </AdminShell>
   );

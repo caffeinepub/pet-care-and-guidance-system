@@ -36,7 +36,7 @@ export default function AdminLandingPage() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {adminSections.map((section) => (
           <Link key={section.id} to={section.to as any}>
-            <Card className="admin-card card-hover h-full cursor-pointer">
+            <Card className="admin-card card-hover h-full cursor-pointer transition-all hover:shadow-lg">
               <CardHeader>
                 <section.icon className="h-12 w-12 text-admin-accent mb-2" />
                 <CardTitle>{section.name}</CardTitle>
